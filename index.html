@@ -3,38 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cadência — Gestão tratada todos os meses | PMEs</title>
-<meta name="description" content="Cadência: contabilidade, salários e tesouraria para PMEs portuguesas. Gestor dedicado, preço fixo mensal e contas fechadas até ao dia 10.">
+<title>Striped Milk — leite de zebra fresco, entregue em 24 horas</title>
+<meta name="description" content="Striped Milk: leite de zebra de pastagem livre, ordenhado de manhã e entregue refrigerado em 24 horas. Garrafa de vidro, queijo das riscas e clube de assinatura.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<a class="skip" href="#servicos">Saltar para o conteúdo</a>
+<a class="skip" href="#produtos">Saltar para o conteúdo</a>
 
 <!-- ============ NAV ============ -->
 <header class="nav" id="nav">
   <div class="wrap nav__inner">
-    <a class="brand" href="#top" aria-label="Cadência — início">
+    <a class="brand" href="#top" aria-label="Striped Milk — início">
       <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="3"  y="18" width="5" height="11" rx="2"/>
-        <rect x="11" y="12" width="5" height="17" rx="2"/>
-        <rect x="19" y="5"  width="5" height="24" rx="2"/>
-        <circle cx="29" cy="5" r="2.6" class="brand__dot"/>
+        <defs>
+          <clipPath id="gota-nav">
+            <path d="M16 2.5C10.5 10 5.5 14.5 5.5 19.5a10.5 10.5 0 0 0 21 0C26.5 14.5 21.5 10 16 2.5Z"/>
+          </clipPath>
+        </defs>
+        <path class="gota" d="M16 2.5C10.5 10 5.5 14.5 5.5 19.5a10.5 10.5 0 0 0 21 0C26.5 14.5 21.5 10 16 2.5Z"/>
+        <g clip-path="url(#gota-nav)" class="riscas">
+          <path d="M-2 12 C 8 9, 14 17, 34 13 L34 17 C 14 21, 8 13, -2 16 Z"/>
+          <path d="M-2 21 C 8 18, 14 26, 34 22 L34 25 C 14 29, 8 21, -2 24 Z"/>
+          <path d="M-2 5 C 8 2, 14 10, 34 6 L34 8 C 14 12, 8 4, -2 7 Z"/>
+        </g>
       </svg>
-      <span class="brand__name">Cadência</span>
+      <span class="brand__name">Striped&nbsp;Milk</span>
     </a>
 
     <nav class="nav__links" aria-label="Navegação principal">
-      <a href="#servicos">Serviços</a>
-      <a href="#porque">Porquê a Cadência</a>
-      <a href="#como">Como funciona</a>
+      <a href="#produtos">Produtos</a>
+      <a href="#porque">Porquê nós</a>
+      <a href="#como">Como chega</a>
       <a href="#contactos">Contactos</a>
     </nav>
 
-    <a class="btn btn--primary btn--sm" href="#orcamento">Pedir orçamento</a>
+    <a class="btn btn--primary btn--sm" href="#encomendar">Encomendar</a>
   </div>
 </header>
 
@@ -46,76 +53,81 @@
     <div class="hero__veil" aria-hidden="true"></div>
 
     <div class="wrap hero__inner">
-      <p class="eyebrow reveal">Gestão para pequenas e médias empresas</p>
+      <p class="eyebrow reveal">Leite de zebra · Herdade das Riscas, Beja</p>
 
       <h1 class="hero__title reveal">
-        A sua gestão em dia.<br>
-        <span class="grad">Todos os meses, sem lembretes.</span>
+        O leite<br>
+        <span class="risca">com riscas.</span>
       </h1>
 
       <p class="hero__slogan reveal">
-        Contabilidade, salários e tesouraria para PMEs portuguesas — com um gestor
-        dedicado, preço fixo mensal e as contas fechadas até ao dia&nbsp;10.
+        Leite de zebra de pastagem livre, para chefes de cozinha e curiosos que já
+        provaram tudo o resto: ordenhado de manhã, em sua casa em&nbsp;24&nbsp;horas,
+        em garrafa de vidro que volta para nós.
       </p>
 
       <div class="hero__cta reveal">
-        <a class="btn btn--primary" href="#orcamento">Pedir orçamento</a>
-        <a class="btn btn--ghost" href="#como">Ver como funciona</a>
+        <a class="btn btn--primary" href="#encomendar">Encomendar</a>
+        <a class="btn btn--ghost" href="#como">Ver como chega</a>
       </div>
-      <p class="hero__micro reveal">Resposta em 24&nbsp;horas úteis. Sem compromisso.</p>
+      <p class="hero__micro reveal">Entrega refrigerada em Portugal continental. Primeira garrafa sem portes.</p>
 
-      <ul class="trust reveal" aria-label="Compromissos">
-        <li><strong>24 h</strong><span>para responder</span></li>
-        <li><strong>Dia 10</strong><span>contas fechadas</span></li>
-        <li><strong>Preço fixo</strong><span>sem extras</span></li>
+      <ul class="trust reveal" aria-label="Em números">
+        <li><strong>32</strong><span>zebras, todas com nome</span></li>
+        <li><strong>24 h</strong><span>do pasto à porta</span></li>
+        <li><strong>500 ml</strong><span>por garrafa de vidro</span></li>
       </ul>
     </div>
 
-    <a class="hero__scroll" href="#servicos" aria-hidden="true" tabindex="-1">
-      <span></span>
-    </a>
+    <a class="hero__scroll" href="#produtos" aria-hidden="true" tabindex="-1"><span></span></a>
   </section>
 
-  <!-- ============ SERVIÇOS ============ -->
-  <section class="section" id="servicos">
+  <div class="faixa" aria-hidden="true"></div>
+
+  <!-- ============ PRODUTOS ============ -->
+  <section class="section" id="produtos">
     <div class="wrap">
       <header class="section__head reveal">
-        <p class="eyebrow">O que fazemos</p>
-        <h2>Três serviços que tiram a gestão da sua secretária</h2>
-        <p class="lede">Pode contratar só um. A maioria dos clientes junta os três e passa a ter um único interlocutor.</p>
+        <p class="eyebrow">O que vendemos</p>
+        <h2>Três formas de levar as riscas para casa</h2>
+        <p class="lede">Tudo sai da mesma herdade, no mesmo dia. Escolha a garrafa, o queijo — ou receba as duas coisas sem ter de se lembrar.</p>
       </header>
 
       <div class="grid grid--3">
         <article class="card reveal">
-          <span class="card__num" aria-hidden="true">01</span>
-          <h3>Contabilidade &amp; Fiscalidade</h3>
-          <p class="card__line">Fecho mensal, IVA e IRC entregues a horas — sem surpresas no fecho do ano.</p>
+          <span class="card__tag" aria-hidden="true">01</span>
+          <h3>Leite Fresco Listrado</h3>
+          <p class="card__preco">4,80&nbsp;€ <span>/ garrafa 500 ml</span></p>
+          <p class="card__line">Ordenhado de manhã, engarrafado em vidro à hora seguinte e entregue frio no dia a seguir.</p>
           <ul class="ticks">
-            <li>Lançamentos e conciliações bancárias</li>
-            <li>IVA, IES e declarações no prazo</li>
-            <li>Alertas antes de cada obrigação fiscal</li>
+            <li>Pasteurizado a baixa temperatura</li>
+            <li>Mais doce e mais leve do que o de vaca</li>
+            <li>A garrafa diz de que zebra veio</li>
           </ul>
         </article>
 
         <article class="card reveal">
-          <span class="card__num" aria-hidden="true">02</span>
-          <h3>Salários &amp; Recursos Humanos</h3>
-          <p class="card__line">Contratos, processamento salarial e obrigações legais tratados até ao dia 25.</p>
+          <span class="card__tag" aria-hidden="true">02</span>
+          <h3>Queijo das Riscas</h3>
+          <p class="card__preco">18,00&nbsp;€ <span>/ peça 250 g</span></p>
+          <p class="card__line">Curado 60 dias em cave de xisto, feito só com leite de zebra e sal de Castro Marim.</p>
           <ul class="ticks">
-            <li>Recibos de vencimento e Segurança Social</li>
-            <li>Admissões, cessações e mapa de férias</li>
-            <li>Apoio em dúvidas laborais do dia a dia</li>
+            <li>Produção de 40 peças por semana</li>
+            <li>Casca natural, massa amanteigada</li>
+            <li>Embalado a vácuo para viajar</li>
           </ul>
         </article>
 
-        <article class="card reveal">
-          <span class="card__num" aria-hidden="true">03</span>
-          <h3>Controlo de Gestão &amp; Tesouraria</h3>
-          <p class="card__line">Painel mensal com margens, custos e previsão de tesouraria a 90 dias.</p>
+        <article class="card card--destaque reveal">
+          <span class="card__tag" aria-hidden="true">03</span>
+          <p class="card__selo">Mais escolhido</p>
+          <h3>Clube Striped</h3>
+          <p class="card__preco">29,00&nbsp;€ <span>/ mês</span></p>
+          <p class="card__line">Quatro garrafas por mês mais uma surpresa da herdade. Cancela quando quiser, sem telefonemas.</p>
           <ul class="ticks">
-            <li>Margem por serviço, loja ou obra</li>
-            <li>Previsão de tesouraria a 90 dias</li>
-            <li>Reunião mensal de 30 minutos</li>
+            <li>Entrega no mesmo dia da semana</li>
+            <li>Salta uma semana quando viajar</li>
+            <li>10 % de desconto em tudo o resto</li>
           </ul>
         </article>
       </div>
@@ -126,116 +138,121 @@
   <section class="section section--alt" id="porque">
     <div class="wrap">
       <header class="section__head reveal">
-        <p class="eyebrow">Porquê a Cadência</p>
-        <h2>Três razões para nos escolher</h2>
+        <p class="eyebrow">Porquê a Striped Milk</p>
+        <h2>Três razões para comprar aqui</h2>
       </header>
 
       <div class="grid grid--3 reasons">
         <article class="reason reveal">
-          <h3><span aria-hidden="true">01</span> Um gestor dedicado, não um call center</h3>
-          <p>Fala sempre com a mesma pessoa, que conhece o seu negócio pelo nome. Resposta garantida em 24 horas úteis.</p>
+          <h3><span aria-hidden="true">01</span> Rebanho pequeno, nomes próprios</h3>
+          <p>São 32 zebras em 90 hectares de pastagem livre no Alentejo. Cada garrafa traz o nome da zebra que a encheu — a Nalá, a Bia, o Zacarias.</p>
         </article>
         <article class="reason reveal">
-          <h3><span aria-hidden="true">02</span> Preço fixo, sem extras no fim do mês</h3>
-          <p>Uma mensalidade acordada no início. Chamadas, reuniões e esclarecimentos já estão incluídos.</p>
+          <h3><span aria-hidden="true">02</span> Do pasto à porta em 24 horas</h3>
+          <p>Ordenha às 6h, saída às 11h, entrega refrigerada no dia seguinte em todo o continente. Nunca passa por armazém.</p>
         </article>
         <article class="reason reveal">
-          <h3><span aria-hidden="true">03</span> Números a tempo de decidir</h3>
-          <p>Contas fechadas até ao dia 10 do mês seguinte e explicadas em linguagem simples — não em jargão.</p>
+          <h3><span aria-hidden="true">03</span> Vidro que volta</h3>
+          <p>Deixe a garrafa vazia à porta na entrega seguinte: nós lavamos, voltamos a encher e você recebe 0,50&nbsp;€ de desconto por cada uma.</p>
         </article>
       </div>
 
       <blockquote class="quote reveal">
-        <p>“Antes passava os domingos a organizar faturas. Agora recebo o relatório no dia 9 e decido na segunda-feira.”</p>
-        <footer>Marta Figueiredo · Clínica Dentária Bonfim, Porto</footer>
+        <p>“Pedi uma garrafa por curiosidade e agora tenho o clube. O gelado que faço com este leite tem lista de espera.”</p>
+        <footer>Tomás Avelar · Gelataria Lamella, Lisboa</footer>
       </blockquote>
     </div>
   </section>
 
-  <!-- ============ COMO FUNCIONA ============ -->
+  <!-- ============ COMO CHEGA ============ -->
   <section class="section" id="como">
     <div class="wrap">
       <header class="section__head reveal">
-        <p class="eyebrow">Como funciona</p>
-        <h2>Começar leva uma reunião de 30 minutos</h2>
+        <p class="eyebrow">Como chega</p>
+        <h2>Da ordenha à sua porta, em três passos</h2>
       </header>
 
       <ol class="steps">
         <li class="step reveal">
           <span class="step__n" aria-hidden="true">1</span>
-          <h3>Diagnóstico gratuito</h3>
-          <p>Olhamos para as suas contas e obrigações atuais e dizemos-lhe, com franqueza, o que está em risco.</p>
+          <h3>Encomenda até às 20h</h3>
+          <p>Escolhe o que quer e a morada. Fica a saber logo o dia exato da entrega.</p>
         </li>
         <li class="step reveal">
           <span class="step__n" aria-hidden="true">2</span>
-          <h3>Proposta com preço fixo</h3>
-          <p>Em 48 horas recebe o plano, o que fica incluído e quanto paga por mês. Sem letras pequenas.</p>
+          <h3>Ordenhamos de manhã</h3>
+          <p>Às 6h estamos no pasto. O leite é engarrafado em vidro na hora seguinte e arrefecido a 4&nbsp;°C.</p>
         </li>
         <li class="step reveal">
           <span class="step__n" aria-hidden="true">3</span>
-          <h3>Acompanhamento mensal</h3>
-          <p>Tratamos de tudo e enviamos o relatório até ao dia 10. Você decide com os números na mão.</p>
+          <h3>Chega frio no dia seguinte</h3>
+          <p>Mala térmica própria, entrega entre as 8h e as 13h. Se falharmos a janela, a encomenda é por nossa conta.</p>
         </li>
       </ol>
     </div>
   </section>
 
-  <!-- ============ ORÇAMENTO (CTA) ============ -->
-  <section class="section section--cta" id="orcamento">
+  <!-- ============ ENCOMENDAR (CTA) ============ -->
+  <section class="section section--cta" id="encomendar">
     <div class="wrap cta__grid">
       <div class="cta__copy reveal">
-        <p class="eyebrow">Pedir orçamento</p>
-        <h2>Quer saber quanto custa ter a gestão tratada?</h2>
-        <p class="lede">Preencha em 30 segundos. Respondemos em 24 horas úteis com uma proposta de preço fixo — sem compromisso e sem chamadas insistentes.</p>
+        <p class="eyebrow">Encomendar</p>
+        <h2>Prove uma garrafa antes de dizer que não.</h2>
+        <p class="lede">Deixe os dados e nós confirmamos o dia da entrega por email, no próprio dia. Sem assinatura obrigatória e sem chamadas a insistir.</p>
         <ul class="ticks ticks--lg">
-          <li>Diagnóstico inicial gratuito</li>
-          <li>Proposta em 48 horas</li>
-          <li>Mudança de contabilista tratada por nós</li>
+          <li>Primeira garrafa sem portes</li>
+          <li>Pagamento só na confirmação</li>
+          <li>Não gostou? Devolvemos o valor</li>
         </ul>
       </div>
 
-      <form class="form reveal" id="form-orcamento" novalidate>
+      <form class="form reveal" id="form-encomenda" novalidate>
         <div class="field">
           <label for="nome">Nome</label>
           <input id="nome" name="nome" type="text" autocomplete="name" required placeholder="Ana Ribeiro">
         </div>
 
         <div class="field">
-          <label for="empresa">Empresa</label>
-          <input id="empresa" name="empresa" type="text" autocomplete="organization" required placeholder="Padaria Ribeiro, Lda.">
-        </div>
-
-        <div class="field">
           <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="email" required placeholder="ana@padariaribeiro.pt">
-          <small class="hint">É só para lhe enviarmos a proposta.</small>
+          <input id="email" name="email" type="email" autocomplete="email" required placeholder="ana@exemplo.pt">
+          <small class="hint">É só para confirmar a entrega.</small>
         </div>
 
         <div class="field">
-          <label for="telefone">Telefone <span class="opt">(opcional)</span></label>
-          <input id="telefone" name="telefone" type="tel" autocomplete="tel" inputmode="tel" placeholder="912 345 678">
+          <label for="produto">O que leva?</label>
+          <select id="produto" name="produto" required>
+            <option value="">Escolha uma opção</option>
+            <option>Leite Fresco Listrado — 4,80 €</option>
+            <option>Queijo das Riscas — 18,00 €</option>
+            <option>Clube Striped — 29,00 €/mês</option>
+          </select>
         </div>
 
-        <div class="field field--full">
-          <label for="dimensao">Quantas pessoas tem a empresa?</label>
-          <select id="dimensao" name="dimensao" required>
-            <option value="">Escolha uma opção</option>
-            <option>Só eu</option>
-            <option>2 a 9 pessoas</option>
-            <option>10 a 49 pessoas</option>
-            <option>50 ou mais</option>
+        <div class="field">
+          <label for="quantidade">Quantidade</label>
+          <select id="quantidade" name="quantidade" required>
+            <option>1</option>
+            <option>2</option>
+            <option>4</option>
+            <option>6</option>
           </select>
         </div>
 
         <div class="field field--full">
-          <label for="servicos-pretendidos">O que precisa? <span class="opt">(opcional)</span></label>
-          <textarea id="servicos-pretendidos" name="mensagem" rows="3" placeholder="Ex.: contabilidade + salários para 6 pessoas"></textarea>
+          <label for="codigo-postal">Código postal da entrega</label>
+          <input id="codigo-postal" name="codigo-postal" type="text" inputmode="numeric" autocomplete="postal-code" required placeholder="7800-123">
+          <small class="hint">Entregamos em Portugal continental.</small>
         </div>
 
-        <button class="btn btn--primary btn--full" type="submit">Pedir orçamento</button>
+        <div class="field field--full">
+          <label for="nota">Alguma nota? <span class="opt">(opcional)</span></label>
+          <textarea id="nota" name="nota" rows="3" placeholder="Ex.: deixar na portaria depois das 10h"></textarea>
+        </div>
+
+        <button class="btn btn--primary btn--full" type="submit">Encomendar</button>
         <p class="form__micro">
-          Respondemos em 24 horas úteis. Nunca partilhamos os seus dados.<br>
-          <em>Formulário de demonstração: não envia nem guarda dados.</em>
+          Confirmamos por email no próprio dia. Nunca partilhamos os seus dados.<br>
+          <em>Formulário de demonstração: não envia, não guarda e não cobra nada.</em>
         </p>
 
         <output class="form__ok" id="form-ok" hidden></output>
@@ -251,38 +268,45 @@
     <div>
       <a class="brand" href="#top">
         <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
-          <rect x="3"  y="18" width="5" height="11" rx="2"/>
-          <rect x="11" y="12" width="5" height="17" rx="2"/>
-          <rect x="19" y="5"  width="5" height="24" rx="2"/>
-          <circle cx="29" cy="5" r="2.6" class="brand__dot"/>
+          <defs>
+            <clipPath id="gota-rodape">
+              <path d="M16 2.5C10.5 10 5.5 14.5 5.5 19.5a10.5 10.5 0 0 0 21 0C26.5 14.5 21.5 10 16 2.5Z"/>
+            </clipPath>
+          </defs>
+          <path class="gota" d="M16 2.5C10.5 10 5.5 14.5 5.5 19.5a10.5 10.5 0 0 0 21 0C26.5 14.5 21.5 10 16 2.5Z"/>
+          <g clip-path="url(#gota-rodape)" class="riscas">
+            <path d="M-2 12 C 8 9, 14 17, 34 13 L34 17 C 14 21, 8 13, -2 16 Z"/>
+            <path d="M-2 21 C 8 18, 14 26, 34 22 L34 25 C 14 29, 8 21, -2 24 Z"/>
+            <path d="M-2 5 C 8 2, 14 10, 34 6 L34 8 C 14 12, 8 4, -2 7 Z"/>
+          </g>
         </svg>
-        <span class="brand__name">Cadência</span>
+        <span class="brand__name">Striped&nbsp;Milk</span>
       </a>
-      <p class="footer__slogan">Gestão que acompanha o ritmo do seu negócio.</p>
+      <p class="footer__slogan">O leite com riscas. Da Herdade das Riscas para a sua porta, em 24 horas.</p>
     </div>
 
     <div>
       <h3>Contactos</h3>
       <ul class="contacts">
-        <li><a href="mailto:ola@cadencia.pt">ola@cadencia.pt</a></li>
-        <li><a href="tel:+351220145980">+351 220 145 980</a></li>
-        <li>Rua do Almada 212, 2.º<br>4050-032 Porto</li>
+        <li><a href="mailto:ola@stripedmilk.pt">ola@stripedmilk.pt</a></li>
+        <li><a href="tel:+351284112907">+351 284 112 907</a></li>
+        <li>Herdade das Riscas, EN 258<br>7800-601 Beja</li>
       </ul>
     </div>
 
     <div>
-      <h3>Horário</h3>
+      <h3>Visitas</h3>
       <ul class="contacts">
-        <li>Segunda a sexta, 9h–18h</li>
-        <li>Reuniões no Porto ou por videochamada</li>
+        <li>Loja da herdade: sábados, 10h–17h</li>
+        <li>Visita guiada ao pasto: marcação prévia</li>
       </ul>
-      <a class="btn btn--ghost btn--sm" href="#orcamento">Pedir orçamento</a>
+      <a class="btn btn--ghost btn--sm" href="#encomendar">Encomendar</a>
     </div>
   </div>
 
   <div class="wrap footer__legal">
-    <p>Cadência Gestão, Lda. · NIF 500 000 000</p>
-    <p>Projeto académico — empresa, testemunho e contactos fictícios.</p>
+    <p>Striped Milk, Lda. · NIF 500 000 000</p>
+    <p>Projeto académico — empresa, produtos, testemunho e contactos fictícios.</p>
   </div>
 </footer>
 

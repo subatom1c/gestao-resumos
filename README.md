@@ -9,35 +9,43 @@ Uma ação para o visitante (o CTA): «Encomendar», «Pedir orçamento», «Mar
 Contactos: email, telefone, morada (podem ser fictícios).
 Uma landing page tem um objetivo. Tudo o que está na página deve ajudar o visitante a perceber a proposta de valor e a carregar no botão de ação. É o mesmo raciocínio da aula 3 (proposta de valor) e da aula 4 TP (experiência do consumidor e microcopy).
 
-Nome da Empresa: **Cadência** (Cadência Gestão, Lda.)
+Nome da Empresa: **Striped Milk** (Striped Milk, Lda.) — venda de leite de zebra.
 
-Slogan: **Gestão que acompanha o ritmo do seu negócio** — contabilidade, salários e tesouraria para PMEs portuguesas, com um gestor dedicado, preço fixo mensal e as contas fechadas até ao dia 10.
+Slogan: **O leite com riscas** — leite de zebra de pastagem livre, para chefes de cozinha e curiosos que já provaram tudo o resto: ordenhado de manhã, em casa em 24 horas, em garrafa de vidro que volta para nós.
 
 Três Produtos:
-1. **Contabilidade & Fiscalidade** — fecho mensal, IVA e IRC entregues a horas, sem surpresas no fecho do ano.
-2. **Salários & Recursos Humanos** — contratos, processamento salarial e obrigações legais tratados até ao dia 25.
-3. **Controlo de Gestão & Tesouraria** — painel mensal com margens, custos e previsão de tesouraria a 90 dias.
+1. **Leite Fresco Listrado** (4,80 € / garrafa 500 ml) — ordenhado de manhã, engarrafado em vidro à hora seguinte, entregue frio no dia a seguir.
+2. **Queijo das Riscas** (18,00 € / peça 250 g) — curado 60 dias em cave de xisto, só com leite de zebra e sal de Castro Marim.
+3. **Clube Striped** (29,00 € / mês) — quatro garrafas por mês mais uma surpresa da herdade; cancela quando quiser.
 
 Três razões para escolher a empresa:
-1. **Um gestor dedicado, não um call center** — fala sempre com a mesma pessoa; resposta garantida em 24 horas úteis.
-2. **Preço fixo, sem extras no fim do mês** — chamadas, reuniões e esclarecimentos já estão incluídos na mensalidade.
-3. **Números a tempo de decidir** — contas fechadas até ao dia 10 do mês seguinte e explicadas em linguagem simples.
+1. **Rebanho pequeno, nomes próprios** — 32 zebras em 90 hectares no Alentejo; cada garrafa traz o nome da zebra que a encheu.
+2. **Do pasto à porta em 24 horas** — ordenha às 6h, saída às 11h, entrega refrigerada no dia seguinte; nunca passa por armazém.
+3. **Vidro que volta** — devolve a garrafa vazia na entrega seguinte e recebe 0,50 € de desconto por cada uma.
 
-Uma ação para o visitante: **«Pedir orçamento»** (botão principal, repetido no topo, no herói, no formulário e no rodapé). Ação secundária: «Ver como funciona».
+Uma ação para o visitante: **«Encomendar»** (botão principal, repetido no topo, no herói, no formulário e no rodapé). Ação secundária: «Ver como chega».
 
 Contactos:
-- Email: ola@cadencia.pt
-- Telefone: +351 220 145 980
-- Morada: Rua do Almada 212, 2.º — 4050-032 Porto
-- Horário: segunda a sexta, 9h–18h
-- *(empresa, testemunho e contactos fictícios — projeto académico)*
+- Email: ola@stripedmilk.pt
+- Telefone: +351 284 112 907
+- Morada: Herdade das Riscas, EN 258 — 7800-601 Beja
+- Loja da herdade: sábados, 10h–17h (visita ao pasto por marcação)
+- *(empresa, produtos, testemunho e contactos fictícios — projeto académico)*
 
-Usar Three.js? **Sim.** O fundo do herói é uma cena Three.js (`scripts/script.js`): um campo de ~1000 barras
-3D que pulsa em onda, como um gráfico de gestão vivo — a "cadência" do negócio. Detalhes:
-- `InstancedMesh` (uma só chamada de desenho para todas as barras), cor interpolada entre azul e menta pela altura.
-- Paralaxe suave com o rato, poeira luminosa, nevoeiro para fundir as bordas no fundo da página.
-- Respeita `prefers-reduced-motion` (desenha um fotograma estático), pausa fora do ecrã e em separador oculto,
-  e tem fundo CSS alternativo se não houver WebGL.
+Usar Three.js? **Sim.** O fundo do herói é uma cena Three.js (`scripts/script.js`): um mar de leite
+listrado que ondula, com gotas de leite a flutuar por cima — umas lisas, outras às riscas. Detalhes:
+- As riscas de zebra são **desenhadas à mão num `<canvas>`** (`desenharRiscas()`) e usadas como textura,
+  com as ondulações em múltiplos de 2π para a imagem encaixar consigo própria e correr em ciclo:
+  as riscas escorrem lentamente, como leite.
+- A superfície é um `PlaneGeometry` de 110×78 segmentos cujos vértices são deslocados por quatro ondas
+  cruzadas a cada fotograma, com as normais recalculadas para a luz reagir às ondas.
+- Luz de leitaria (hemisférica quente + direcional + ponto dourado), nevoeiro cor de creme a fundir as
+  bordas no fundo da página e paralaxe suave com o rato.
+- Respeita `prefers-reduced-motion` (desenha um fotograma estático), pausa fora do ecrã e em separador
+  oculto, e tem fundo CSS alternativo com riscas se não houver WebGL ou se a página estiver offline.
 - Three.js r149 via CDN (cdnjs), build clássico — a página abre com duplo-clique, sem servidor local.
+
+Identidade: creme + tinta + um toque de ouro; títulos em Fraunces, texto em Inter; riscas de zebra
+como motivo gráfico (sublinhado do título, faixa entre secções, topo do produto em destaque, citação).
 
 Ficheiros: `index.html`, `style.css`, `scripts/script.js`.
