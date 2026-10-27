@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teoria do Produtor · Economia I</title>
+<script>try { const t = localStorage.getItem("tema"); if (t) document.documentElement.dataset.theme = t; } catch {}</script>
+<style>
+  :root {
+    --bg: #f7f5f0; --card: #ffffff; --text: #1f2328; --muted: #5f6670;
+    --line: #e2ded5; --accent: #2f5d8a; --accent-soft: #e6eef6;
+    --ok: #2e7d4f; --ok-soft: #e5f3ea; --bad: #b2453a; --bad-soft: #f8e7e4;
+    --hint: #8a6a1f; --hint-soft: #fbf3df;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181c; --card: #1f2227; --text: #e8e6e1; --muted: #a0a6ad;
+      --line: #33373d; --accent: #7fb0e0; --accent-soft: #24313f;
+      --ok: #6fc794; --ok-soft: #1f3328; --bad: #e38a80; --bad-soft: #3a2422;
+      --hint: #e0c070; --hint-soft: #352e1c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181c; --card: #1f2227; --text: #e8e6e1; --muted: #a0a6ad;
+    --line: #33373d; --accent: #7fb0e0; --accent-soft: #24313f;
+    --ok: #6fc794; --ok-soft: #1f3328; --bad: #e38a80; --bad-soft: #3a2422;
+    --hint: #e0c070; --hint-soft: #352e1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: Georgia, "Times New Roman", serif; line-height: 1.55;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  header h1 { font-size: 1.7rem; margin: 0 0 6px; }
+  header p { color: var(--muted); margin: 0 0 20px; font-family: system-ui, sans-serif; font-size: .95rem; }
+  .legend {
+    display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin-bottom: 24px; font-family: system-ui, sans-serif; font-size: .9rem;
+  }
+  .legend div { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; }
+  .legend b { color: var(--accent); }
+  .bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+  .bar span { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+  .meta { display: flex; justify-content: space-between; font-family: system-ui, sans-serif; font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+  .q { font-size: 1.15rem; margin: 0 0 16px; }
+  .opts { display: grid; gap: 10px; }
+  .opt {
+    text-align: left; font: inherit; font-family: system-ui, sans-serif; font-size: .98rem;
+    padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: transparent; color: var(--text); cursor: pointer;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--accent); }
+  .opt:disabled { cursor: default; }
+  .opt.ok { background: var(--ok-soft); border-color: var(--ok); }
+  .opt.bad { background: var(--bad-soft); border-color: var(--bad); }
+  .opt .tag { font-weight: 600; margin-right: 8px; color: var(--muted); }
+  .hintbtn, .nav button {
+    font-family: system-ui, sans-serif; font-size: .9rem; border-radius: 8px; cursor: pointer;
+    padding: 9px 14px; border: 1px solid var(--line); background: transparent; color: var(--text);
+  }
+  .hintbtn { margin-top: 14px; color: var(--hint); border-color: var(--hint); }
+  .hint { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--hint-soft); color: var(--hint); font-family: system-ui, sans-serif; font-size: .92rem; }
+  .fb { margin-top: 16px; padding: 12px 14px; border-radius: 10px; font-family: system-ui, sans-serif; font-size: .95rem; }
+  .fb.ok { background: var(--ok-soft); }
+  .fb.bad { background: var(--bad-soft); }
+  .fb b { display: block; margin-bottom: 4px; }
+  .nav { display: flex; justify-content: space-between; margin-top: 18px; gap: 10px; }
+  .nav .primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .nav button:disabled { opacity: .4; cursor: default; }
+  .result { text-align: center; }
+  .result .score { font-size: 3rem; color: var(--accent); margin: 8px 0; }
+  .review { text-align: left; margin-top: 20px; font-family: system-ui, sans-serif; font-size: .9rem; }
+  .review li { margin-bottom: 6px; }
+  .hidden { display: none; }
+  .voltar { display: inline-block; margin-bottom: 20px; font-family: system-ui, sans-serif; font-size: .9rem; color: var(--muted); text-decoration: none; }
+  .voltar:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="voltar" href="../../disciplina.html?d=economia-1">← Economia I</a>
+  <header>
+    <h1>Teoria do Produtor: pontos L1, L2 e L3</h1>
+    <p>Capital fixo, trabalho variável. Responde antes de ver a pista: tentar lembrar é o que fixa a matéria.</p>
+  </header>
+  <div class="legend">
+    <div><b>L1</b> — máximo do PMg (ponto de inflexão da PT)</div>
+    <div><b>L2</b> — máximo do PM (PM = PMg)</div>
+    <div><b>L3</b> — PMg = 0 (PT máxima)</div>
+  </div>
+
+  <div id="quiz">
+    <div class="bar"><span id="progress"></span></div>
+    <div class="meta"><span id="count"></span><span id="scoreLive"></span></div>
+    <div class="card">
+      <p class="q" id="question"></p>
+      <div class="opts" id="options"></div>
+      <button class="hintbtn" id="hintBtn">Mostrar pista</button>
+      <div class="hint hidden" id="hint"></div>
+      <div class="fb hidden" id="feedback"></div>
+      <div class="nav">
+        <button id="prevBtn">← Anterior</button>
+        <button class="primary" id="nextBtn">Seguinte →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="result" class="card result hidden">
+    <h2>Resultado</h2>
+    <div class="score" id="finalScore"></div>
+    <p id="finalMsg"></p>
+    <ul class="review" id="review"></ul>
+    <div class="nav" style="justify-content:center">
+      <button class="primary" id="restartBtn">Recomeçar (ordem baralhada)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { q: "Em que ponto é que os trabalhadores são mais eficientes, e porquê?",
+    o: ["Em L1, porque o PMg é máximo", "Em L2, porque o PM é máximo (PM = PMg)", "Em L3, porque a PT é máxima", "Em L1, porque é o ponto de inflexão da PT"],
+    a: 1, h: "Eficiência = produção por trabalhador, em média.",
+    e: "A eficiência mede-se pelo PM (PT ÷ L). O PM é máximo em L2, onde a curva do PMg o cruza. Antes de L2 o PM sobe; depois desce." },
+  { q: "Em que ponto é que o trabalhador adicional acrescenta mais à produção, e porquê?",
+    o: ["Em L1, porque o PMg é máximo", "Em L2, porque PM = PMg", "Em L3, porque a PT é máxima", "Em L2, porque o PM é máximo"],
+    a: 0, h: "Qual é o conceito que mede o contributo do último trabalhador?",
+    e: "O contributo do trabalhador adicional é o PMg. É máximo em L1. A partir daí, cada trabalhador extra acrescenta cada vez menos (rendimentos marginais decrescentes)." },
+  { q: "Em que ponto é que a produção total é máxima, e porquê?",
+    o: ["Em L1, porque o PMg é máximo", "Em L2, porque o PM é máximo", "Em L3, porque o PMg = 0", "Em L3, porque PM = PMg"],
+    a: 2, h: "Quando é que mais um trabalhador já não acrescenta nada?",
+    e: "A PT sobe enquanto o PMg é positivo. Em L3 o PMg é zero: o trabalhador seguinte não acrescenta nada. Depois de L3 o PMg é negativo e a PT começa a descer." },
+  { q: "Em que ponto se encontra o ponto de inflexão da curva da PT, e porquê?",
+    o: ["Em L1, porque é onde o PMg deixa de subir e começa a descer", "Em L2, porque é onde o PM deixa de subir", "Em L3, porque é onde a PT deixa de subir", "Em L2, porque é onde as curvas se cruzam"],
+    a: 0, h: "O ponto de inflexão é onde a PT passa de crescer cada vez mais depressa para crescer cada vez mais devagar.",
+    e: "O PMg é a inclinação da PT. Em L1 essa inclinação é máxima: antes de L1 a PT cresce a um ritmo cada vez maior; depois, a um ritmo cada vez menor. Isso é o ponto de inflexão." },
+  { q: "Entre L1 e L2, o PMg está a descer. Porque é que o PM continua a subir?",
+    o: ["Porque a PT está a descer", "Porque o PMg, embora a descer, ainda está acima do PM", "Porque o PMg já é negativo", "Porque o PM sobe sempre que se contratam trabalhadores"],
+    a: 1, h: "Lembra-te das notas: uma nota pior do que a anterior pode ainda estar acima da tua média.",
+    e: "O que importa para o PM não é se o PMg sobe ou desce, mas se está acima ou abaixo do PM. Entre L1 e L2, cada trabalhador acrescenta menos do que o anterior, mas ainda mais do que a média, por isso puxa a média para cima." },
+  { q: "Porque é que a eficiência máxima não é em L1?",
+    o: ["Porque em L1 a PT ainda está a descer", "Porque depois de L1 os trabalhadores seguintes ainda produzem acima da média, logo o PM continua a subir até L2", "Porque em L1 o PMg é zero", "Porque em L1 o PM é negativo"],
+    a: 1, h: "O que acontece ao PM se contratares mais um trabalhador logo a seguir a L1?",
+    e: "Em L1 o PMg é máximo e está acima do PM. Se parasses aí, deixarias de contratar trabalhadores que ainda produzem acima da média e que tornariam a equipa, em média, mais produtiva. O PM só deixa de subir em L2." },
+  { q: "Entre L2 e L3, o que acontece?",
+    o: ["A PT desce, o PM sobe e o PMg é negativo", "A PT sobe, o PM desce e o PMg é positivo mas inferior ao PM", "A PT sobe, o PM sobe e o PMg é superior ao PM", "A PT desce, o PM desce e o PMg é positivo"],
+    a: 1, h: "Depois de L2, o PMg está abaixo do PM, mas ainda não chegou a zero.",
+    e: "O PMg ainda é positivo, por isso a PT continua a subir. Mas está abaixo do PM, por isso o PM desce. Produz-se mais no total, mas cada trabalhador é, em média, menos produtivo." },
+  { q: "Faz sentido contratar trabalhadores para além de L3? Porquê?",
+    o: ["Sim, porque a PT continua a subir", "Sim, porque o PM ainda é positivo", "Não, porque o PMg é negativo e a PT desce", "Não, porque o PM é zero"],
+    a: 2, h: "Qual é o sinal do PMg depois de L3?",
+    e: "Depois de L3 o PMg é negativo: cada trabalhador extra faz a produção total diminuir (por exemplo, por excesso de pessoas para o capital fixo disponível). Pagar a alguém para reduzir a produção nunca faz sentido." },
+  { q: "Em que intervalo é que uma empresa racional escolhe produzir (fase II da produção)?",
+    o: ["Entre 0 e L1", "Entre L1 e L2", "Entre L2 e L3", "Depois de L3"],
+    a: 2, h: "Antes de L2 vale sempre a pena contratar mais (o PM ainda sobe). Depois de L3, nunca vale a pena.",
+    e: "Antes de L2 (fase I), contratar mais aumenta a eficiência, por isso a empresa não pára aí. Depois de L3 (fase III), o PMg é negativo. A zona racional é, portanto, entre L2 e L3 (fase II)." },
+  { q: "Em que ponto é que a curva do PMg corta a curva do PM, e porquê?",
+    o: ["Em L1, porque o PMg é máximo", "Em L2, porque o PMg corta sempre o PM no máximo deste", "Em L3, porque o PMg é zero", "Em L2, porque o PMg corta sempre o PM no mínimo deste"],
+    a: 1, h: "Antes do cruzamento PMg > PM (PM sobe); depois PMg < PM (PM desce).",
+    e: "Se o PM sobe antes do cruzamento e desce depois, o cruzamento só pode ser o máximo do PM. Por isso, L2 é ao mesmo tempo o ponto PM = PMg e o ponto de eficiência máxima." }
+];
+
+const LETTERS = ["A", "B", "C", "D"];
+let order, answers, idx;
+const $ = id => document.getElementById(id);
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function start(shuffled) {
+  order = shuffled ? shuffle(QUESTIONS.map((_, i) => i)) : QUESTIONS.map((_, i) => i);
+  answers = Array(QUESTIONS.length).fill(null);
+  idx = 0;
+  $("result").classList.add("hidden");
+  $("quiz").classList.remove("hidden");
+  render();
+}
+
+function score() { return answers.filter((v, i) => v !== null && v === QUESTIONS[order[i]].a).length; }
+
+function render() {
+  const Q = QUESTIONS[order[idx]];
+  const chosen = answers[idx];
+  $("count").textContent = `Pergunta ${idx + 1} de ${QUESTIONS.length}`;
+  $("scoreLive").textContent = `Certas: ${score()}`;
+  $("progress").style.width = `${(answers.filter(v => v !== null).length / QUESTIONS.length) * 100}%`;
+  $("question").textContent = Q.q;
+  $("hint").textContent = "Pista: " + Q.h;
+  $("hint").classList.add("hidden");
+  $("hintBtn").classList.toggle("hidden", chosen !== null);
+
+  const box = $("options");
+  box.innerHTML = "";
+  Q.o.forEach((text, i) => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = `<span class="tag">${LETTERS[i]}</span>`;
+    b.appendChild(document.createTextNode(text));
+    if (chosen !== null) {
+      b.disabled = true;
+      if (i === Q.a) b.classList.add("ok");
+      else if (i === chosen) b.classList.add("bad");
+    } else {
+      b.onclick = () => { answers[idx] = i; render(); };
+    }
+    box.appendChild(b);
+  });
+
+  const fb = $("feedback");
+  if (chosen === null) {
+    fb.className = "fb hidden";
+  } else {
+    const right = chosen === Q.a;
+    fb.className = "fb " + (right ? "ok" : "bad");
+    fb.innerHTML = `<b>${right ? "Certo!" : "Ainda não. A resposta é " + LETTERS[Q.a] + "."}</b>`;
+    fb.appendChild(document.createTextNode(Q.e));
+  }
+
+  $("prevBtn").disabled = idx === 0;
+  $("nextBtn").textContent = idx === QUESTIONS.length - 1 ? "Ver resultado" : "Seguinte →";
+}
+
+function finish() {
+  const s = score(), n = QUESTIONS.length;
+  $("quiz").classList.add("hidden");
+  $("result").classList.remove("hidden");
+  $("finalScore").textContent = `${s} / ${n}`;
+  $("finalMsg").textContent = s === n ? "Perfeito — dominas os três pontos."
+    : s >= n * 0.7 ? "Muito bem. Revê as que falhaste abaixo."
+    : "Vale a pena rever a relação entre PM e PMg e tentar de novo amanhã.";
+  const ul = $("review");
+  ul.innerHTML = "";
+  order.forEach((qi, i) => {
+    const Q = QUESTIONS[qi];
+    const li = document.createElement("li");
+    const ok = answers[i] === Q.a;
+    li.textContent = `${ok ? "✓" : answers[i] === null ? "–" : "✗"} ${Q.q}${ok ? "" : " → " + LETTERS[Q.a] + ": " + Q.o[Q.a]}`;
+    ul.appendChild(li);
+  });
+}
+
+$("hintBtn").onclick = () => $("hint").classList.remove("hidden");
+$("prevBtn").onclick = () => { if (idx > 0) { idx--; render(); } };
+$("nextBtn").onclick = () => { if (idx < QUESTIONS.length - 1) { idx++; render(); } else finish(); };
+$("restartBtn").onclick = () => start(true);
+
+start(false);
+</script>
+</body>
+</html>

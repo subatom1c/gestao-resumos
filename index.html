@@ -1,316 +1,51 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Striped Milk — leite de zebra fresco, entregue em 24 horas</title>
-<meta name="description" content="Striped Milk: leite de zebra de pastagem livre, ordenhado de manhã e entregue refrigerado em 24 horas. Garrafa de vidro, queijo das riscas e clube de assinatura.">
+<title>Resumos de Gestão</title>
+<meta name="description" content="Resumos e quizzes de todas as disciplinas da licenciatura em Gestão, organizados por ano e semestre.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
 </head>
-<body>
+<body data-pagina="inicio">
 
-<a class="skip" href="#produtos">Saltar para o conteúdo</a>
-
-<!-- ============ NAV ============ -->
-<header class="nav" id="nav">
-  <div class="wrap nav__inner">
-    <a class="brand" href="#top" aria-label="Striped Milk — início">
-      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
-        <defs>
-          <clipPath id="gota-nav">
-            <path d="M16 2.5C10.5 10 5.5 14.5 5.5 19.5a10.5 10.5 0 0 0 21 0C26.5 14.5 21.5 10 16 2.5Z"/>
-          </clipPath>
-        </defs>
-        <path class="gota" d="M16 2.5C10.5 10 5.5 14.5 5.5 19.5a10.5 10.5 0 0 0 21 0C26.5 14.5 21.5 10 16 2.5Z"/>
-        <g clip-path="url(#gota-nav)" class="riscas">
-          <path d="M-2 12 C 8 9, 14 17, 34 13 L34 17 C 14 21, 8 13, -2 16 Z"/>
-          <path d="M-2 21 C 8 18, 14 26, 34 22 L34 25 C 14 29, 8 21, -2 24 Z"/>
-          <path d="M-2 5 C 8 2, 14 10, 34 6 L34 8 C 14 12, 8 4, -2 7 Z"/>
-        </g>
-      </svg>
-      <span class="brand__name">Striped&nbsp;Milk</span>
+<header class="topo">
+  <div class="topo__dentro">
+    <a class="marca" href="index.html">
+      <span class="marca__logo"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M13 4h5.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H13z"/><path d="M15.5 8h2M15.5 11h2M6.5 8h2M6.5 11h2"/></svg></span>
+      <span>Resumos <b>Gestão</b></span>
     </a>
-
-    <nav class="nav__links" aria-label="Navegação principal">
-      <a href="#produtos">Produtos</a>
-      <a href="#porque">Porquê nós</a>
-      <a href="#como">Como chega</a>
-      <a href="#contactos">Contactos</a>
-    </nav>
-
-    <a class="btn btn--primary btn--sm" href="#encomendar">Encomendar</a>
+    <button class="botao-icone" id="tema" type="button"></button>
   </div>
 </header>
 
-<main id="top">
-
-  <!-- ============ HERO ============ -->
-  <section class="hero" id="hero">
-    <canvas id="scene" aria-hidden="true"></canvas>
-    <div class="hero__veil" aria-hidden="true"></div>
-
-    <div class="wrap hero__inner">
-      <p class="eyebrow reveal">Leite de zebra · Herdade das Riscas, Beja</p>
-
-      <h1 class="hero__title reveal">
-        O leite<br>
-        <span class="risca">com riscas.</span>
-      </h1>
-
-      <p class="hero__slogan reveal">
-        Leite de zebra de pastagem livre, para chefes de cozinha e curiosos que já
-        provaram tudo o resto: ordenhado de manhã, em sua casa em&nbsp;24&nbsp;horas,
-        em garrafa de vidro que volta para nós.
-      </p>
-
-      <div class="hero__cta reveal">
-        <a class="btn btn--primary" href="#encomendar">Encomendar</a>
-        <a class="btn btn--ghost" href="#como">Ver como chega</a>
-      </div>
-      <p class="hero__micro reveal">Entrega refrigerada em Portugal continental. Primeira garrafa sem portes.</p>
-
-      <ul class="trust reveal" aria-label="Em números">
-        <li><strong>32</strong><span>zebras, todas com nome</span></li>
-        <li><strong>24 h</strong><span>do pasto à porta</span></li>
-        <li><strong>500 ml</strong><span>por garrafa de vidro</span></li>
-      </ul>
-    </div>
-
-    <a class="hero__scroll" href="#produtos" aria-hidden="true" tabindex="-1"><span></span></a>
+<main>
+  <section class="heroi">
+    <h1>Resumos de Gestão</h1>
+    <p>Resumos e quizzes das disciplinas da licenciatura, organizados por ano e semestre. Escolhe uma cadeira para começar.</p>
+    <label class="procura">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+      <input id="procura" type="search" placeholder="Procurar disciplina…" autocomplete="off" aria-label="Procurar disciplina">
+      <kbd>/</kbd>
+    </label>
+    <p class="estatisticas" id="stats"></p>
   </section>
 
-  <div class="faixa" aria-hidden="true"></div>
+  <div class="legenda" id="legenda" aria-label="Áreas científicas"></div>
 
-  <!-- ============ PRODUTOS ============ -->
-  <section class="section" id="produtos">
-    <div class="wrap">
-      <header class="section__head reveal">
-        <p class="eyebrow">O que vendemos</p>
-        <h2>Três formas de levar as riscas para casa</h2>
-        <p class="lede">Tudo sai da mesma herdade, no mesmo dia. Escolha a garrafa, o queijo — ou receba as duas coisas sem ter de se lembrar.</p>
-      </header>
-
-      <div class="grid grid--3">
-        <article class="card reveal">
-          <span class="card__tag" aria-hidden="true">01</span>
-          <h3>Leite Fresco Listrado</h3>
-          <p class="card__preco">4,80&nbsp;€ <span>/ garrafa 500 ml</span></p>
-          <p class="card__line">Ordenhado de manhã, engarrafado em vidro à hora seguinte e entregue frio no dia a seguir.</p>
-          <ul class="ticks">
-            <li>Pasteurizado a baixa temperatura</li>
-            <li>Mais doce e mais leve do que o de vaca</li>
-            <li>A garrafa diz de que zebra veio</li>
-          </ul>
-        </article>
-
-        <article class="card reveal">
-          <span class="card__tag" aria-hidden="true">02</span>
-          <h3>Queijo das Riscas</h3>
-          <p class="card__preco">18,00&nbsp;€ <span>/ peça 250 g</span></p>
-          <p class="card__line">Curado 60 dias em cave de xisto, feito só com leite de zebra e sal de Castro Marim.</p>
-          <ul class="ticks">
-            <li>Produção de 40 peças por semana</li>
-            <li>Casca natural, massa amanteigada</li>
-            <li>Embalado a vácuo para viajar</li>
-          </ul>
-        </article>
-
-        <article class="card card--destaque reveal">
-          <span class="card__tag" aria-hidden="true">03</span>
-          <p class="card__selo">Mais escolhido</p>
-          <h3>Clube Striped</h3>
-          <p class="card__preco">29,00&nbsp;€ <span>/ mês</span></p>
-          <p class="card__line">Quatro garrafas por mês mais uma surpresa da herdade. Cancela quando quiser, sem telefonemas.</p>
-          <ul class="ticks">
-            <li>Entrega no mesmo dia da semana</li>
-            <li>Salta uma semana quando viajar</li>
-            <li>10 % de desconto em tudo o resto</li>
-          </ul>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ PORQUÊ ============ -->
-  <section class="section section--alt" id="porque">
-    <div class="wrap">
-      <header class="section__head reveal">
-        <p class="eyebrow">Porquê a Striped Milk</p>
-        <h2>Três razões para comprar aqui</h2>
-      </header>
-
-      <div class="grid grid--3 reasons">
-        <article class="reason reveal">
-          <h3><span aria-hidden="true">01</span> Rebanho pequeno, nomes próprios</h3>
-          <p>São 32 zebras em 90 hectares de pastagem livre no Alentejo. Cada garrafa traz o nome da zebra que a encheu — a Nalá, a Bia, o Zacarias.</p>
-        </article>
-        <article class="reason reveal">
-          <h3><span aria-hidden="true">02</span> Do pasto à porta em 24 horas</h3>
-          <p>Ordenha às 6h, saída às 11h, entrega refrigerada no dia seguinte em todo o continente. Nunca passa por armazém.</p>
-        </article>
-        <article class="reason reveal">
-          <h3><span aria-hidden="true">03</span> Vidro que volta</h3>
-          <p>Deixe a garrafa vazia à porta na entrega seguinte: nós lavamos, voltamos a encher e você recebe 0,50&nbsp;€ de desconto por cada uma.</p>
-        </article>
-      </div>
-
-      <blockquote class="quote reveal">
-        <p>“Pedi uma garrafa por curiosidade e agora tenho o clube. O gelado que faço com este leite tem lista de espera.”</p>
-        <footer>Tomás Avelar · Gelataria Lamella, Lisboa</footer>
-      </blockquote>
-    </div>
-  </section>
-
-  <!-- ============ COMO CHEGA ============ -->
-  <section class="section" id="como">
-    <div class="wrap">
-      <header class="section__head reveal">
-        <p class="eyebrow">Como chega</p>
-        <h2>Da ordenha à sua porta, em três passos</h2>
-      </header>
-
-      <ol class="steps">
-        <li class="step reveal">
-          <span class="step__n" aria-hidden="true">1</span>
-          <h3>Encomenda até às 20h</h3>
-          <p>Escolhe o que quer e a morada. Fica a saber logo o dia exato da entrega.</p>
-        </li>
-        <li class="step reveal">
-          <span class="step__n" aria-hidden="true">2</span>
-          <h3>Ordenhamos de manhã</h3>
-          <p>Às 6h estamos no pasto. O leite é engarrafado em vidro na hora seguinte e arrefecido a 4&nbsp;°C.</p>
-        </li>
-        <li class="step reveal">
-          <span class="step__n" aria-hidden="true">3</span>
-          <h3>Chega frio no dia seguinte</h3>
-          <p>Mala térmica própria, entrega entre as 8h e as 13h. Se falharmos a janela, a encomenda é por nossa conta.</p>
-        </li>
-      </ol>
-    </div>
-  </section>
-
-  <!-- ============ ENCOMENDAR (CTA) ============ -->
-  <section class="section section--cta" id="encomendar">
-    <div class="wrap cta__grid">
-      <div class="cta__copy reveal">
-        <p class="eyebrow">Encomendar</p>
-        <h2>Prove uma garrafa antes de dizer que não.</h2>
-        <p class="lede">Deixe os dados e nós confirmamos o dia da entrega por email, no próprio dia. Sem assinatura obrigatória e sem chamadas a insistir.</p>
-        <ul class="ticks ticks--lg">
-          <li>Primeira garrafa sem portes</li>
-          <li>Pagamento só na confirmação</li>
-          <li>Não gostou? Devolvemos o valor</li>
-        </ul>
-      </div>
-
-      <form class="form reveal" id="form-encomenda" novalidate>
-        <div class="field">
-          <label for="nome">Nome</label>
-          <input id="nome" name="nome" type="text" autocomplete="name" required placeholder="Ana Ribeiro">
-        </div>
-
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="email" required placeholder="ana@exemplo.pt">
-          <small class="hint">É só para confirmar a entrega.</small>
-        </div>
-
-        <div class="field">
-          <label for="produto">O que leva?</label>
-          <select id="produto" name="produto" required>
-            <option value="">Escolha uma opção</option>
-            <option>Leite Fresco Listrado — 4,80 €</option>
-            <option>Queijo das Riscas — 18,00 €</option>
-            <option>Clube Striped — 29,00 €/mês</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="quantidade">Quantidade</label>
-          <select id="quantidade" name="quantidade" required>
-            <option>1</option>
-            <option>2</option>
-            <option>4</option>
-            <option>6</option>
-          </select>
-        </div>
-
-        <div class="field field--full">
-          <label for="codigo-postal">Código postal da entrega</label>
-          <input id="codigo-postal" name="codigo-postal" type="text" inputmode="numeric" autocomplete="postal-code" required placeholder="7800-123">
-          <small class="hint">Entregamos em Portugal continental.</small>
-        </div>
-
-        <div class="field field--full">
-          <label for="nota">Alguma nota? <span class="opt">(opcional)</span></label>
-          <textarea id="nota" name="nota" rows="3" placeholder="Ex.: deixar na portaria depois das 10h"></textarea>
-        </div>
-
-        <button class="btn btn--primary btn--full" type="submit">Encomendar</button>
-        <p class="form__micro">
-          Confirmamos por email no próprio dia. Nunca partilhamos os seus dados.<br>
-          <em>Formulário de demonstração: não envia, não guarda e não cobra nada.</em>
-        </p>
-
-        <output class="form__ok" id="form-ok" hidden></output>
-      </form>
-    </div>
-  </section>
-
+  <div id="catalogo"></div>
+  <p class="sem-resultados" id="sem-resultados" hidden>Nenhuma disciplina corresponde à procura.</p>
 </main>
 
-<!-- ============ CONTACTOS / FOOTER ============ -->
-<footer class="footer" id="contactos">
-  <div class="wrap footer__grid">
-    <div>
-      <a class="brand" href="#top">
-        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
-          <defs>
-            <clipPath id="gota-rodape">
-              <path d="M16 2.5C10.5 10 5.5 14.5 5.5 19.5a10.5 10.5 0 0 0 21 0C26.5 14.5 21.5 10 16 2.5Z"/>
-            </clipPath>
-          </defs>
-          <path class="gota" d="M16 2.5C10.5 10 5.5 14.5 5.5 19.5a10.5 10.5 0 0 0 21 0C26.5 14.5 21.5 10 16 2.5Z"/>
-          <g clip-path="url(#gota-rodape)" class="riscas">
-            <path d="M-2 12 C 8 9, 14 17, 34 13 L34 17 C 14 21, 8 13, -2 16 Z"/>
-            <path d="M-2 21 C 8 18, 14 26, 34 22 L34 25 C 14 29, 8 21, -2 24 Z"/>
-            <path d="M-2 5 C 8 2, 14 10, 34 6 L34 8 C 14 12, 8 4, -2 7 Z"/>
-          </g>
-        </svg>
-        <span class="brand__name">Striped&nbsp;Milk</span>
-      </a>
-      <p class="footer__slogan">O leite com riscas. Da Herdade das Riscas para a sua porta, em 24 horas.</p>
-    </div>
-
-    <div>
-      <h3>Contactos</h3>
-      <ul class="contacts">
-        <li><a href="mailto:ola@stripedmilk.pt">ola@stripedmilk.pt</a></li>
-        <li><a href="tel:+351284112907">+351 284 112 907</a></li>
-        <li>Herdade das Riscas, EN 258<br>7800-601 Beja</li>
-      </ul>
-    </div>
-
-    <div>
-      <h3>Visitas</h3>
-      <ul class="contacts">
-        <li>Loja da herdade: sábados, 10h–17h</li>
-        <li>Visita guiada ao pasto: marcação prévia</li>
-      </ul>
-      <a class="btn btn--ghost btn--sm" href="#encomendar">Encomendar</a>
-    </div>
-  </div>
-
-  <div class="wrap footer__legal">
-    <p>Striped Milk, Lda. · NIF 500 000 000</p>
-    <p>Projeto académico — empresa, produtos, testemunho e contactos fictícios.</p>
-  </div>
+<footer class="rodape">
+  <p>Feito por alunos, para alunos. Encontraste um erro? Avisa.</p>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js"></script>
-<script src="scripts/script.js"></script>
+<script src="assets/icones.js"></script>
+<script src="assets/dados.js"></script>
+<script src="assets/site.js"></script>
 </body>
 </html>
