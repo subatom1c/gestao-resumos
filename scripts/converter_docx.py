@@ -12,6 +12,7 @@ SAIDA = RAIZ / "scripts" / "saida"
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 MIN_CARACTERES = 300
 MAX_BYTES = 200 * 1024
+PARTE = 20000
 
 
 def formato_run(r):
@@ -101,7 +102,10 @@ def main():
         if len(conteudo) < MIN_CARACTERES or len(conteudo.encode()) > MAX_BYTES:
             ignorados += 1
             continue
-        linhas.append(f"INSERT OR IGNORE INTO paginas (id, disciplina, titulo, conteudo) VALUES ({sql(m[1])}, {sql(m[2])}, '{m[4]}', {sql(conteudo)});")
+        # O D1 limita o tamanho de cada instrução, por isso os textos longos vão por partes.
+        partes = [conteudo[i:i + PARTE] for i in range(0, len(conteudo), PARTE)]
+        linhas.append(f"INSERT OR REPLACE INTO paginas (id, disciplina, titulo, conteudo) VALUES ({sql(m[1])}, {sql(m[2])}, '{m[4]}', {sql(partes[0])});")
+        linhas += [f"UPDATE paginas SET conteudo = conteudo || {sql(x)} WHERE id = {sql(m[1])};" for x in partes[1:]]
     (SAIDA / "paginas.sql").write_text("\n".join(linhas) + "\n")
     print(f"{len(linhas)} convertidos, {ignorados} ignorados")
 
