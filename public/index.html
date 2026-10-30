@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resumos de Gestão</title>
+<meta name="description" content="Resumos e quizzes de todas as disciplinas da licenciatura em Gestão, organizados por ano e semestre.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+</head>
+<body data-pagina="inicio">
+
+<header class="topo">
+  <div class="topo__dentro">
+    <a class="marca" href="index.html">
+      <span class="marca__logo"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M13 4h5.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H13z"/><path d="M15.5 8h2M15.5 11h2M6.5 8h2M6.5 11h2"/></svg></span>
+      <span>Resumos <b>Gestão</b></span>
+    </a>
+    <button class="botao-icone" id="tema" type="button"></button>
+  </div>
+</header>
+
+<main>
+  <section class="heroi">
+    <h1>Resumos de Gestão</h1>
+    <p>Resumos e quizzes das disciplinas da licenciatura, organizados por ano e semestre. Escolhe uma cadeira para começar.</p>
+    <label class="procura">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+      <input id="procura" type="search" placeholder="Procurar disciplina…" autocomplete="off" aria-label="Procurar disciplina">
+      <kbd>/</kbd>
+    </label>
+    <p class="estatisticas" id="stats"></p>
+  </section>
+
+  <div class="legenda" id="legenda" aria-label="Áreas científicas"></div>
+
+  <div id="catalogo"></div>
+  <p class="sem-resultados" id="sem-resultados" hidden>Nenhuma disciplina corresponde à procura.</p>
+</main>
+
+<footer class="rodape">
+  <p>Feito por alunos, para alunos. <a href="enviar.html">Envia os teus apontamentos</a>.</p>
+</footer>
+
+<script src="assets/icones.js"></script>
+<script src="assets/dados.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

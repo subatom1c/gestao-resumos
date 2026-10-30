@@ -313,3 +313,34 @@ h1, h2, h3 { font-family: var(--fonte-titulo); line-height: 1.15; margin: 0; let
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* ============ Envio e painel ============ */
+
+.pagina-estreita { max-width: 640px; margin: 0 auto; padding: 40px 20px; }
+.pagina-estreita h1 { font-family: var(--fonte-titulo); }
+.pagina-estreita p { color: var(--suave); }
+
+.formulario { display: grid; gap: 14px; margin-top: 20px; }
+.formulario label { display: grid; gap: 6px; font-size: .9rem; font-weight: 500; }
+.formulario input, .formulario select, .formulario textarea {
+  font: inherit; color: var(--texto); background: var(--superficie);
+  border: 1px solid var(--linha); border-radius: 8px; padding: 9px 11px; width: 100%;
+}
+.formulario--linha { grid-template-columns: 1fr auto; }
+.formulario__armadilha { position: absolute; left: -9999px; }
+.formulario__estado { min-height: 1.4em; font-size: .9rem; margin: 0; }
+
+.botao {
+  font: inherit; font-weight: 600; cursor: pointer; border: 1px solid transparent; border-radius: 8px;
+  padding: 9px 16px; background: var(--acento); color: var(--acento-texto);
+}
+.botao:disabled { opacity: .6; cursor: wait; }
+.botao--leve { background: var(--superficie-2); color: var(--texto); }
+.botao--perigo { background: transparent; color: var(--jur); border-color: var(--jur); }
+
+.lista-simples { list-style: none; padding: 0; margin: 12px 0 24px; display: grid; gap: 10px; }
+.pendente, .membro { background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio); padding: 14px 16px; }
+.pendente__titulo { font-weight: 600; color: var(--texto) !important; margin: 0 0 4px; }
+.pendente__meta { font-size: .85rem; margin: 0 0 4px; }
+.pendente__acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.membro { display: flex; justify-content: space-between; align-items: center; gap: 12px; }

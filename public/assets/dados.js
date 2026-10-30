@@ -4,6 +4,8 @@
 //   1. Põe o ficheiro HTML em disciplinas/<id-da-disciplina>/
 //   2. Acrescenta uma entrada em `conteudos` dessa disciplina:
 //        { tipo: "quiz" | "resumo", titulo: "...", descricao: "...", ficheiro: "nome.html" }
+//
+// Os apontamentos, exercícios e testes em PDF não estão aqui: vêm da API (/api/materiais).
 
 const AREAS = {
   E:   { nome: "Economia",                      cor: "econ" },
@@ -73,6 +75,39 @@ const ANOS = [
         { id: "controlo-gestao", nome: "Controlo de Gestão", sigla: "CG", area: "C", icone: "manometro" },
         { id: "gestao-marketing", nome: "Gestão de Marketing", sigla: "GM", area: "GES", icone: "alvo" },
         { id: "gestao-estrategica", nome: "Gestão Estratégica", sigla: "GEST", area: "GES", icone: "bussola" },
+      ],
+    ],
+  },
+  {
+    ano: "outras",
+    titulo: "Outras cadeiras",
+    rotulos: ["Planos de estudos anteriores"],
+    semestres: [
+      [
+        { id: "teoria-contabilidade", nome: "Teoria da Contabilidade", sigla: "TC", area: "C", icone: "livro" },
+        { id: "gestao-qualidade", nome: "Gestão da Qualidade", sigla: "GQ", area: "EGI", icone: "manometro" },
+        { id: "gestao-servicos", nome: "Gestão de Serviços", sigla: "GS", area: "GES", icone: "conversa" },
+        { id: "novas-formas-negocio", nome: "Novas Formas de Negócio", sigla: "NFN", area: "GES", icone: "monitor" },
+      ],
+    ],
+  },
+  {
+    ano: "mestrado",
+    titulo: "Mestrado",
+    semestres: [
+      [
+        { id: "m-estrategia", nome: "Estratégia e Competitividade", sigla: "EC", area: "GES", icone: "bussola" },
+        { id: "m-financas", nome: "Finanças Empresariais", sigla: "FE", area: "GES", icone: "moedas" },
+        { id: "m-cadeia-abastecimento", nome: "Gestão da Cadeia de Abastecimento", sigla: "GCA", area: "EGI", icone: "camiao" },
+        { id: "m-modelos-negocio", nome: "Modelos e Processos de Negócio", sigla: "MPN", area: "GES", icone: "organograma" },
+        { id: "m-negocios-internacionais", nome: "Negócios Internacionais", sigla: "NI", area: "GES", icone: "globo" },
+        { id: "m-pesquisa-marketing", nome: "Pesquisa de Marketing", sigla: "PM", area: "GES", icone: "lupa" },
+        { id: "m-marketing-industrial", nome: "Marketing Industrial e de Serviços", sigla: "MIS", area: "GES", icone: "megafone" },
+      ],
+      [
+        { id: "m-lideranca", nome: "Comportamento e Liderança nas Organizações", sigla: "CLO", area: "GES", icone: "pessoas" },
+        { id: "m-novos-produtos", nome: "Desenvolvimento de Novos Produtos", sigla: "DNP", area: "GES", icone: "foguetao" },
+        { id: "m-gestao-marcas", nome: "Gestão de Marcas", sigla: "GMAR", area: "GES", icone: "alvo" },
       ],
     ],
   },

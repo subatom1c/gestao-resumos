@@ -2,8 +2,26 @@
 
 const $ = (sel, el = document) => el.querySelector(sel);
 
+function rotuloAno(a) { return a.titulo || `${a.ano}º Ano`; }
+function rotuloSemestre(a, s) { return a.rotulos?.[s] || `${s + 1}º Semestre`; }
+
+// Os materiais vêm de quem envia: têm de ser escapados antes de irem para innerHTML.
+function esc(t) {
+  return String(t).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function lerJson(url, alternativa) {
+  try {
+    const r = await fetch(url);
+    return r.ok ? await r.json() : alternativa;
+  } catch {
+    return alternativa;
+  }
+}
+
 const TODAS = ANOS.flatMap(a => a.semestres.flatMap((disc, s) =>
-  disc.map(d => ({ ...d, ano: a.ano, semestre: s + 1, conteudos: d.conteudos || [] }))));
+  disc.map(d => ({ ...d, ano: a.ano, anoTitulo: rotuloAno(a), semestreTitulo: rotuloSemestre(a, s), semestre: s + 1, conteudos: d.conteudos || [] }))));
 
 const semAcentos = t => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -15,6 +33,7 @@ function resumoConteudos(d) {
   const partes = [];
   if (r) partes.push(plural(r, "resumo", "resumos"));
   if (q) partes.push(plural(q, "quiz", "quizzes"));
+  if (d.nMateriais) partes.push(plural(d.nMateriais, "ficheiro", "ficheiros"));
   return partes.join(" · ");
 }
 
@@ -58,17 +77,19 @@ function cartao(d) {
     </a>`;
 }
 
-function paginaInicial() {
-  const total = TODAS.reduce((n, d) => n + d.conteudos.length, 0);
+async function paginaInicial() {
+  const contagens = await lerJson("api/contagens", {});
+  TODAS.forEach(d => { d.nMateriais = contagens[d.id] || 0; });
+  const total = TODAS.reduce((n, d) => n + d.conteudos.length + d.nMateriais, 0);
   $("#stats").textContent =
     `${TODAS.length} disciplinas · ${plural(total, "conteúdo publicado", "conteúdos publicados")}`;
 
   $("#catalogo").innerHTML = ANOS.map(a => `
     <section class="ano" aria-labelledby="ano-${a.ano}">
-      <h2 id="ano-${a.ano}"><span class="ano__num">${a.ano}º</span> Ano</h2>
+      <h2 id="ano-${a.ano}">${a.titulo || `<span class="ano__num">${a.ano}º</span> Ano`}</h2>
       ${a.semestres.map((disc, s) => `
         <div class="semestre">
-          <h3>${s + 1}º Semestre</h3>
+          <h3>${rotuloSemestre(a, s)}</h3>
           <div class="grelha">${disc.map(d => cartao(TODAS.find(t => t.id === d.id))).join("")}</div>
         </div>`).join("")}
     </section>`).join("");
@@ -116,6 +137,39 @@ function itemConteudo(d, c) {
     </li>`;
 }
 
+const ROTULOS_MATERIAL = { resumo: "Resumo", exercicios: "Exercícios", teste: "Teste ou exame" };
+
+function tamanhoLegivel(bytes) {
+  return bytes < 1e6 ? `${Math.ceil(bytes / 1e3)} KB` : `${(bytes / 1e6).toFixed(1).replace(".", ",")} MB`;
+}
+
+function itemMaterial(m) {
+  const meta = [m.ano_letivo, m.extensao.toUpperCase(), tamanhoLegivel(m.tamanho), m.autor && `por ${m.autor}`].filter(Boolean).join(" · ");
+  return `
+    <li>
+      <a class="conteudo" href="ficheiros/${esc(m.id)}" target="_blank" rel="noopener">
+        <span class="conteudo__icone tipo-resumo">${icone("resumo")}</span>
+        <span class="conteudo__texto">
+          <span class="conteudo__tipo">${ROTULOS_MATERIAL[m.tipo]}</span>
+          <span class="conteudo__titulo">${esc(m.titulo)}</span>
+          ${m.descricao ? `<span class="conteudo__desc">${esc(m.descricao)}</span>` : ""}
+          <span class="conteudo__desc">${esc(meta)}</span>
+        </span>
+        ${icone("seta", "conteudo__seta")}
+      </a>
+    </li>`;
+}
+
+function secaoMateriais(materiais, tipo, titulo) {
+  const itens = materiais.filter(m => m.tipo === tipo);
+  if (!itens.length) return "";
+  return `
+    <section class="secao">
+      <h2>${titulo} <span class="contagem">${itens.length}</span></h2>
+      <ul class="lista">${itens.map(itemMaterial).join("")}</ul>
+    </section>`;
+}
+
 function secao(d, tipo, titulo, vazio) {
   const itens = d.conteudos.filter(c => c.tipo === tipo);
   return `
@@ -127,7 +181,7 @@ function secao(d, tipo, titulo, vazio) {
     </section>`;
 }
 
-function paginaDisciplina() {
+async function paginaDisciplina() {
   const id = new URLSearchParams(location.search).get("d");
   const d = TODAS.find(t => t.id === id);
   const main = $("#disciplina");
@@ -140,11 +194,12 @@ function paginaDisciplina() {
 
   document.title = `${d.nome} · Resumos de Gestão`;
   const area = AREAS[d.area];
+  const materiais = await lerJson(`api/materiais?d=${encodeURIComponent(d.id)}`, []);
   const irmas = TODAS.filter(t => t.ano === d.ano && t.semestre === d.semestre);
 
   main.innerHTML = `
     <aside class="lateral" aria-label="Disciplinas do semestre">
-      <p class="lateral__titulo">${d.ano}º Ano · ${d.semestre}º Semestre</p>
+      <p class="lateral__titulo">${d.anoTitulo} · ${d.semestreTitulo}</p>
       <ul>
         ${irmas.map(t => `
           <li><a href="disciplina.html?d=${t.id}" class="area-${AREAS[t.area].cor}" ${t.id === d.id ? 'aria-current="page"' : ""}>
@@ -155,7 +210,7 @@ function paginaDisciplina() {
     <article class="conteudo-principal">
       <nav class="migalhas" aria-label="Caminho">
         <a href="index.html">Disciplinas</a><span>/</span>
-        <a href="index.html#ano-${d.ano}">${d.ano}º Ano</a><span>/</span>
+        <a href="index.html#ano-${d.ano}">${d.anoTitulo}</a><span>/</span>
         <span aria-current="page">${d.sigla}</span>
       </nav>
 
@@ -166,14 +221,81 @@ function paginaDisciplina() {
           <p class="cabecalho__meta">
             <span class="chip">${d.sigla}</span>
             <span class="chip chip--area"><i></i>${area.nome}</span>
-            <span class="chip">${ECTS} ECTS</span>
+            ${typeof d.ano === "number" ? `<span class="chip">${ECTS} ECTS</span>` : ""}
           </p>
         </div>
       </header>
 
       ${secao(d, "resumo", "Resumos", "Ainda não há resumos para esta disciplina.")}
       ${secao(d, "quiz", "Quizzes", "Ainda não há quizzes para esta disciplina.")}
+      ${secaoMateriais(materiais, "resumo", "Apontamentos")}
+      ${secaoMateriais(materiais, "exercicios", "Exercícios")}
+      ${secaoMateriais(materiais, "teste", "Testes e exames")}
+      <p class="vazio-bloco"><a href="enviar.html?d=${d.id}">Tens material desta disciplina? Envia-o.</a></p>
     </article>`;
+}
+
+/* ---------- formulário de envio ---------- */
+
+function opcoesDisciplinas(selecionada) {
+  return ANOS.map(a => `
+    <optgroup label="${rotuloAno(a)}">
+      ${a.semestres.flat().map(d =>
+        `<option value="${d.id}" ${d.id === selecionada ? "selected" : ""}>${d.nome}</option>`).join("")}
+    </optgroup>`).join("");
+}
+
+function htmlFormEnvio(selecionada) {
+  return `
+    <form class="formulario" id="form-envio">
+      <label>Disciplina
+        <select name="disciplina" required><option value="">Escolhe…</option>${opcoesDisciplinas(selecionada)}</select>
+      </label>
+      <label>Tipo
+        <select name="tipo" required>
+          <option value="resumo">Resumo ou apontamentos</option>
+          <option value="exercicios">Exercícios</option>
+          <option value="teste">Teste ou exame</option>
+        </select>
+      </label>
+      <label>Título <input name="titulo" required maxlength="150"></label>
+      <label>Ano letivo (opcional) <input name="ano_letivo" maxlength="20" placeholder="2025/26"></label>
+      <label>Descrição (opcional) <textarea name="descricao" rows="3" maxlength="500"></textarea></label>
+      <label>O teu nome (opcional; fica visível) <input name="autor" maxlength="80"></label>
+      <label class="formulario__armadilha" aria-hidden="true">Site <input name="site" tabindex="-1" autocomplete="off"></label>
+      <label>Ficheiro (até 50 MB)
+        <input name="ficheiro" type="file" required accept=".pdf,.doc,.docx,.pptx,.xlsx,.jpg,.jpeg,.png">
+      </label>
+      <button class="botao" type="submit">Enviar</button>
+      <p class="formulario__estado" id="envio-estado" role="status"></p>
+    </form>`;
+}
+
+function iniciarFormEnvio(url, cabecalhos, mensagemSucesso) {
+  const form = $("#form-envio");
+  const estado = $("#envio-estado");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const botao = form.querySelector("button");
+    botao.disabled = true;
+    estado.textContent = "A enviar…";
+    try {
+      const r = await fetch(url, { method: "POST", headers: cabecalhos(), body: new FormData(form) });
+      const dados = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(dados.erro || "Não foi possível enviar.");
+      form.reset();
+      estado.textContent = mensagemSucesso;
+    } catch (err) {
+      estado.textContent = err.message === "Failed to fetch" ? "Sem ligação ao servidor. Tenta outra vez." : err.message;
+    }
+    botao.disabled = false;
+  });
+}
+
+function paginaEnviar() {
+  const d = new URLSearchParams(location.search).get("d");
+  $("#formulario").innerHTML = htmlFormEnvio(d);
+  iniciarFormEnvio("api/envios", () => ({}), "Obrigado! O envio fica visível depois de ser aprovado.");
 }
 
 /* ---------- arranque ---------- */
@@ -181,3 +303,4 @@ function paginaDisciplina() {
 iniciarTema();
 if (document.body.dataset.pagina === "inicio") paginaInicial();
 if (document.body.dataset.pagina === "disciplina") paginaDisciplina();
+if (document.body.dataset.pagina === "enviar") paginaEnviar();
