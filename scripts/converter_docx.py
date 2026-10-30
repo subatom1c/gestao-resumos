@@ -63,6 +63,11 @@ def linha_de(p):
         return "#" * min(int(nivel[1]), 3) + " " + texto.replace("**", "")
     if props is not None and props.find(f"{W}numPr") is not None:
         return "- " + texto
+    # Muitos resumos usam só negrito como título: é daqui que sai o índice.
+    so_negrito = re.fullmatch(r"\*\*([^*]+)\*\*", texto.replace("** **", " "))
+    if so_negrito and len(so_negrito[1]) <= 90 and not so_negrito[1].endswith((":", ".", ";")):
+        nivel = "#" if re.match(r"(cap[ií]tulo|parte|tema|m[oó]dulo|aula)\s*\d", so_negrito[1], re.I) else "##"
+        return f"{nivel} {so_negrito[1]}"
     return texto
 
 

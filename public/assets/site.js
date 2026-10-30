@@ -350,8 +350,15 @@ function mdLinha(t) {
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" rel="noopener nofollow">$1</a>');
 }
 
-function mdParaHtml(texto) {
+function mdParaHtml(texto, indice = []) {
   const saida = [];
+  const usados = new Map();
+  const ancora = t => {
+    const base = semAcentos(t).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "seccao";
+    const n = (usados.get(base) || 0) + 1;
+    usados.set(base, n);
+    return n === 1 ? base : `${base}-${n}`;
+  };
   let lista = null, paragrafo = [];
   const fecharParagrafo = () => {
     if (paragrafo.length) saida.push(`<p>${paragrafo.map(mdLinha).join("<br>")}</p>`);
@@ -373,7 +380,9 @@ function mdParaHtml(texto) {
     if (titulo) {
       fecharParagrafo();
       const nivel = titulo[1].length + 1;
-      saida.push(`<h${nivel}>${mdLinha(titulo[2])}</h${nivel}>`);
+      const id = ancora(titulo[2]);
+      indice.push({ id, nivel, texto: titulo[2].replace(/[*`]/g, "") });
+      saida.push(`<h${nivel} id="${id}">${mdLinha(titulo[2])}</h${nivel}>`);
     } else if (!linha.trim()) {
       fecharParagrafo();
     } else {
@@ -385,6 +394,28 @@ function mdParaHtml(texto) {
   return saida.join("");
 }
 
+function htmlIndice(indice) {
+  return indice.filter(i => i.nivel <= 3).map(i =>
+    `<li class="indice__n${i.nivel}"><a href="#${i.id}">${esc(i.texto)}</a></li>`).join("");
+}
+
+// Marca no índice a secção que está a ser lida.
+function seguirLeitura(indice) {
+  const ligacoes = new Map([...document.querySelectorAll(".indice--lado a")].map(a => [a.hash.slice(1), a]));
+  const visiveis = new Set();
+  const observador = new IntersectionObserver(entradas => {
+    entradas.forEach(e => (e.isIntersecting ? visiveis.add(e.target.id) : visiveis.delete(e.target.id)));
+    const atual = indice.find(i => visiveis.has(i.id));
+    if (!atual) return;
+    ligacoes.forEach((a, id) => {
+      const ativa = id === atual.id;
+      if (ativa && a.getAttribute("aria-current") !== "true") a.scrollIntoView({ block: "nearest" });
+      a.toggleAttribute("aria-current", ativa);
+    });
+  }, { rootMargin: "-80px 0px -70% 0px" });
+  ligacoes.forEach((_, id) => { const h = document.getElementById(id); if (h) observador.observe(h); });
+}
+
 async function paginaTexto() {
   const id = new URLSearchParams(location.search).get("id");
   const p = await lerJson(`api/paginas/${encodeURIComponent(id)}`, null);
@@ -394,12 +425,47 @@ async function paginaTexto() {
     return;
   }
   document.title = `${p.titulo} · Resumos de Gestão`;
+
   const d = TODAS.find(t => t.id === p.disciplina);
+  const nomeDisciplina = d ? d.nome : p.disciplina;
+  const irmas = await lerJson(`api/paginas?d=${encodeURIComponent(p.disciplina)}`, []);
+  const posicao = irmas.findIndex(i => i.id === p.id);
+  const anterior = irmas[posicao - 1], seguinte = irmas[posicao + 1];
+  const indice = [];
+  const html = mdParaHtml(p.conteudo, indice);
+  const temIndice = indice.length > 1;
+
   main.innerHTML = `
-    <p><a href="disciplina.html?d=${esc(p.disciplina)}">← ${esc(d ? d.nome : p.disciplina)}</a></p>
-    <h1>${esc(p.titulo)}</h1>
-    <p><a class="botao botao--leve" href="editar.html?id=${esc(p.id)}">Editar este resumo</a></p>
-    <div class="texto-md">${mdParaHtml(p.conteudo)}</div>`;
+    <aside class="lateral ${d ? `area-${AREAS[d.area].cor}` : ""}" aria-label="Resumos da disciplina">
+      <p class="lateral__titulo"><a href="disciplina.html?d=${esc(p.disciplina)}">${esc(nomeDisciplina)}</a></p>
+      <ul>
+        ${irmas.map(i => `<li><a href="texto.html?id=${esc(i.id)}" ${i.id === p.id ? 'aria-current="page"' : ""}><span>${esc(i.titulo)}</span></a></li>`).join("")}
+      </ul>
+    </aside>
+
+    <article class="leitura__texto">
+      <nav class="migalhas" aria-label="Caminho">
+        <a href="index.html">Disciplinas</a><span>/</span>
+        <a href="disciplina.html?d=${esc(p.disciplina)}">${esc(d ? d.sigla : p.disciplina)}</a><span>/</span>
+        <span aria-current="page">${esc(p.titulo)}</span>
+      </nav>
+      <h1>${esc(p.titulo)}</h1>
+      ${temIndice ? `<details class="indice indice--dentro"><summary>Índice</summary><ul>${htmlIndice(indice)}</ul></details>` : ""}
+      <div class="texto-md">${html}</div>
+      <p class="leitura__editar"><a href="editar.html?id=${esc(p.id)}">Editar esta página</a></p>
+      <nav class="leitura__passos" aria-label="Outros resumos">
+        ${anterior ? `<a href="texto.html?id=${esc(anterior.id)}"><small>Anterior</small>${esc(anterior.titulo)}</a>` : "<span></span>"}
+        ${seguinte ? `<a class="leitura__seguinte" href="texto.html?id=${esc(seguinte.id)}"><small>Seguinte</small>${esc(seguinte.titulo)}</a>` : ""}
+      </nav>
+    </article>
+
+    ${temIndice ? `<nav class="indice indice--lado" aria-label="Nesta página">
+      <p class="indice__titulo">Nesta página</p>
+      <ul>${htmlIndice(indice)}</ul>
+    </nav>` : ""}`;
+
+  if (temIndice) seguirLeitura(indice);
+  if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 }
 
 async function paginaEditar() {
