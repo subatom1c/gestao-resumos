@@ -358,7 +358,7 @@ export default {
       const { results } = await env.BD.prepare(
         `SELECT disciplina, COUNT(*) AS n FROM (
            SELECT disciplina FROM materiais WHERE estado = 'publicado'
-           UNION ALL SELECT disciplina FROM paginas
+           UNION ALL SELECT disciplina FROM paginas WHERE conteudo <> ''
          ) GROUP BY disciplina`
       ).all();
       return json(Object.fromEntries(results.map(r => [r.disciplina, r.n])));
@@ -380,7 +380,7 @@ export default {
 
     if (pathname === "/api/paginas" && metodo === "GET") {
       const { results } = await env.BD.prepare(
-        "SELECT id, titulo, atualizado_em FROM paginas WHERE disciplina = ? ORDER BY titulo"
+        "SELECT id, titulo, atualizado_em, conteudo = '' AS vazia FROM paginas WHERE disciplina = ? ORDER BY titulo"
       ).bind(searchParams.get("d") || "").all();
       return json(results);
     }

@@ -385,7 +385,7 @@ h1, h2, h3 { font-family: var(--fonte-titulo); line-height: 1.15; margin: 0; let
 .indice--dentro summary { cursor: pointer; font-weight: 600; }
 .indice--dentro ul { margin-top: 10px; max-height: 50vh; overflow-y: auto; }
 
-.leitura__editar { margin-top: 40px; font-size: .9rem; }
+.leitura .leitura__editar { display: block; text-align: center; text-decoration: none; margin-top: 14px; font-size: .88rem; color: var(--texto); }
 .leitura__passos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
 .leitura__passos a { display: block; padding: 12px 14px; border: 1px solid var(--linha); border-radius: var(--raio); background: var(--superficie); color: var(--texto); text-decoration: none; font-weight: 600; }
 .leitura__passos a:hover { border-color: var(--acento); }

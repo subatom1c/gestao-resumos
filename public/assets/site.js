@@ -143,8 +143,8 @@ function tamanhoLegivel(bytes) {
   return bytes < 1e6 ? `${Math.ceil(bytes / 1e3)} KB` : `${(bytes / 1e6).toFixed(1).replace(".", ",")} MB`;
 }
 
-function botaoAlterar(m) {
-  return `<a class="conteudo__alterar" href="enviar.html?substitui=${esc(m.id)}">Propor alteração</a>`;
+function botaoEditar(href) {
+  return `<a class="conteudo__alterar" href="${href}">Editar</a>`;
 }
 
 function itemMaterial(m) {
@@ -161,7 +161,7 @@ function itemMaterial(m) {
         </span>
         ${icone("seta", "conteudo__seta")}
       </a>
-      ${botaoAlterar(m)}
+      ${botaoEditar(`enviar.html?substitui=${esc(m.id)}`)}
     </li>`;
 }
 
@@ -171,19 +171,28 @@ function itemPagina(p) {
       <a class="conteudo" href="texto.html?id=${esc(p.id)}">
         <span class="conteudo__icone tipo-resumo">${icone("resumo")}</span>
         <span class="conteudo__texto">
-          <span class="conteudo__tipo">Resumo editável</span>
+          <span class="conteudo__tipo">Resumo</span>
           <span class="conteudo__titulo">${esc(p.titulo)}</span>
+          ${p.vazia ? `<span class="conteudo__desc">Ainda vazio. Podes começar a escrevê-lo.</span>` : ""}
         </span>
         ${icone("seta", "conteudo__seta")}
       </a>
+      ${botaoEditar(`editar.html?id=${esc(p.id)}`)}
     </li>`;
 }
 
-function secaoPaginas(d, paginas) {
+function secaoResumos(d, paginas, materiais) {
+  const ficheiros = materiais.filter(m => m.tipo === "resumo");
+  const html = d.conteudos.filter(c => c.tipo === "resumo");
+  const total = paginas.length + ficheiros.length + html.length;
   return `
     <section class="secao">
-      <h2>Resumos editáveis <span class="contagem">${paginas.length}</span></h2>
-      ${paginas.length ? `<ul class="lista">${paginas.map(itemPagina).join("")}</ul>` : ""}
+      <h2>Resumos <span class="contagem">${total}</span></h2>
+      <ul class="lista">
+        ${paginas.map(itemPagina).join("")}
+        ${html.map(c => itemConteudo(d, c)).join("")}
+        ${ficheiros.map(itemMaterial).join("")}
+      </ul>
       <p class="vazio-bloco"><a href="editar.html?d=${d.id}">Escrever um resumo novo</a></p>
     </section>`;
 }
@@ -257,10 +266,8 @@ async function paginaDisciplina() {
         </div>
       </header>
 
-      ${secao(d, "resumo", "Resumos", "Ainda não há resumos para esta disciplina.")}
+      ${secaoResumos(d, paginas, materiais)}
       ${secao(d, "quiz", "Quizzes", "Ainda não há quizzes para esta disciplina.")}
-      ${secaoPaginas(d, paginas)}
-      ${secaoMateriais(materiais, "resumo", "Apontamentos")}
       ${secaoMateriais(materiais, "exercicios", "Exercícios")}
       ${secaoMateriais(materiais, "teste", "Testes e exames")}
       <p class="vazio-bloco"><a href="enviar.html?d=${d.id}">Tens material desta disciplina? Envia-o.</a></p>
@@ -441,6 +448,7 @@ async function paginaTexto() {
       <ul>
         ${irmas.map(i => `<li><a href="texto.html?id=${esc(i.id)}" ${i.id === p.id ? 'aria-current="page"' : ""}><span>${esc(i.titulo)}</span></a></li>`).join("")}
       </ul>
+      <a class="botao botao--leve leitura__editar" href="editar.html?id=${esc(p.id)}">Editar esta página</a>
     </aside>
 
     <article class="leitura__texto">
@@ -451,8 +459,9 @@ async function paginaTexto() {
       </nav>
       <h1>${esc(p.titulo)}</h1>
       ${temIndice ? `<details class="indice indice--dentro"><summary>Índice</summary><ul>${htmlIndice(indice)}</ul></details>` : ""}
-      <div class="texto-md">${html}</div>
-      <p class="leitura__editar"><a href="editar.html?id=${esc(p.id)}">Editar esta página</a></p>
+      ${p.conteudo.trim()
+        ? `<div class="texto-md">${html}</div>`
+        : `<p class="vazio-bloco">Ainda não há nada aqui. <a href="editar.html?id=${esc(p.id)}">Escreve o primeiro resumo.</a></p>`}
       <nav class="leitura__passos" aria-label="Outros resumos">
         ${anterior ? `<a href="texto.html?id=${esc(anterior.id)}"><small>Anterior</small>${esc(anterior.titulo)}</a>` : "<span></span>"}
         ${seguinte ? `<a class="leitura__seguinte" href="texto.html?id=${esc(seguinte.id)}"><small>Seguinte</small>${esc(seguinte.titulo)}</a>` : ""}
