@@ -1,7 +1,7 @@
 // API do site: materiais públicos, envios à espera de aprovação e membros de confiança.
 
-const LIMITE_FICHEIRO = 50 * 1024 * 1024;
-const LIMITE_PENDENTES = 2 * 1024 * 1024 * 1024;
+const LIMITE_FICHEIRO = 25 * 1024 * 1024;
+const LIMITE_PENDENTES = 900 * 1024 * 1024;
 const LIMITE_ENVIOS_DIA = 10;
 
 const TIPOS = new Set(["resumo", "exercicios", "teste"]);
@@ -74,7 +74,7 @@ async function hashIp(request) {
 // Valida o formulário; devolve { erro } ou os campos prontos a guardar.
 async function lerEnvio(request) {
   const tamanho = Number(request.headers.get("content-length") || 0);
-  if (tamanho > LIMITE_FICHEIRO + 1024 * 1024) return { erro: "O ficheiro é demasiado grande (máximo 50 MB).", estado: 413 };
+  if (tamanho > LIMITE_FICHEIRO + 1024 * 1024) return { erro: "O ficheiro é demasiado grande (máximo 25 MB).", estado: 413 };
 
   let form;
   try { form = await request.formData(); } catch { return { erro: "Formulário inválido." }; }
@@ -89,7 +89,7 @@ async function lerEnvio(request) {
   if (!TIPOS.has(tipo)) return { erro: "Escolhe o tipo de conteúdo." };
   if (!titulo) return { erro: "Indica um título." };
   if (!(ficheiro instanceof File) || !ficheiro.size) return { erro: "Escolhe um ficheiro." };
-  if (ficheiro.size > LIMITE_FICHEIRO) return { erro: "O ficheiro é demasiado grande (máximo 50 MB).", estado: 413 };
+  if (ficheiro.size > LIMITE_FICHEIRO) return { erro: "O ficheiro é demasiado grande (máximo 25 MB).", estado: 413 };
 
   const extensao = ficheiro.name.split(".").pop().toLowerCase();
   const formato = FORMATOS[extensao];
@@ -110,9 +110,27 @@ async function lerEnvio(request) {
   };
 }
 
+// Os ficheiros publicados ficam na Release do GitHub; os pendentes ficam no KV até serem aprovados.
+async function publicarNoGithub(env, id, extensao, bytes) {
+  const url = `${env.GITHUB_UPLOAD_URL}?name=${id}.${extensao}`;
+  const r = await fetch(url, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      accept: "application/vnd.github+json",
+      "content-type": FORMATOS[extensao].mime,
+      "user-agent": "gestao-resumos",
+    },
+    body: bytes,
+  });
+  // 422: o ficheiro já lá está, de uma tentativa anterior.
+  if (!r.ok && r.status !== 422) throw new Error(`GitHub respondeu ${r.status}`);
+}
+
 async function guardarEnvio(env, e, { estado, ipHash = "", aprovadoPor = "" }) {
   const id = crypto.randomUUID();
-  await env.FICHEIROS.put(id, e.bytes, { httpMetadata: { contentType: FORMATOS[e.extensao].mime } });
+  if (estado === "pendente") await env.PENDENTES.put(id, e.bytes);
+  else await publicarNoGithub(env, id, e.extensao, e.bytes);
   await env.BD.prepare(
     `INSERT INTO materiais (id, disciplina, tipo, titulo, descricao, ano_letivo, autor, ficheiro_nome, extensao, tamanho, estado, ip_hash, aprovado_por)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -142,14 +160,14 @@ async function envioPublico(request, env) {
 
 /* ---------- ficheiros ---------- */
 
-function respostaFicheiro(objeto, m, cacheControl) {
+function respostaFicheiro(corpo, m, cacheControl) {
   const nome = encodeURIComponent(m.ficheiro_nome);
   const disposicao = m.extensao === "pdf" ? "inline" : "attachment";
-  return new Response(objeto.body, {
+  return new Response(corpo, {
     headers: {
       "content-type": FORMATOS[m.extensao].mime,
       "content-disposition": `${disposicao}; filename*=UTF-8''${nome}`,
-      "content-length": String(objeto.size),
+      "content-length": String(m.tamanho),
       "x-content-type-options": "nosniff",
       "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
       "cache-control": cacheControl,
@@ -157,11 +175,15 @@ function respostaFicheiro(objeto, m, cacheControl) {
   });
 }
 
-async function ficheiro(env, id, condicaoEstado) {
-  const m = await env.BD.prepare(`SELECT * FROM materiais WHERE id = ? AND estado = ?`).bind(id, condicaoEstado).first();
-  if (!m) return null;
-  const objeto = await env.FICHEIROS.get(id);
-  return objeto ? { objeto, m } : null;
+const lerMaterial = (env, id, estado) =>
+  env.BD.prepare("SELECT * FROM materiais WHERE id = ? AND estado = ?").bind(id, estado).first();
+
+async function ficheiroPublicado(env, id) {
+  const m = await lerMaterial(env, id, "publicado");
+  if (!m) return new Response("Não encontrado", { status: 404 });
+  const r = await fetch(`${env.FICHEIROS_BASE}/${id}.${m.extensao}`);
+  if (!r.ok) return new Response("Não encontrado", { status: 404 });
+  return respostaFicheiro(r.body, m, "public, max-age=86400");
 }
 
 /* ---------- painel ---------- */
@@ -194,19 +216,25 @@ async function painel(request, env, caminho) {
   if (pendente) {
     const [, id, acao] = pendente;
     if (acao === "ficheiro" && metodo === "GET") {
-      const f = await ficheiro(env, id, "pendente");
-      return f ? respostaFicheiro(f.objeto, f.m, "no-store") : erro("Envio não encontrado.", 404);
+      const m = await lerMaterial(env, id, "pendente");
+      const corpo = m && await env.PENDENTES.get(id, { type: "stream" });
+      return corpo ? respostaFicheiro(corpo, m, "no-store") : erro("Envio não encontrado.", 404);
     }
     if (acao === "aprovar" && metodo === "POST") {
-      const r = await env.BD.prepare(
+      const m = await lerMaterial(env, id, "pendente");
+      const bytes = m && await env.PENDENTES.get(id, { type: "arrayBuffer" });
+      if (!bytes) return erro("Envio não encontrado.", 404);
+      await publicarNoGithub(env, id, m.extensao, bytes);
+      await env.BD.prepare(
         "UPDATE materiais SET estado = 'publicado', aprovado_por = ? WHERE id = ? AND estado = 'pendente'"
       ).bind(u.email, id).run();
-      return r.meta.changes ? json({ ok: true }) : erro("Envio não encontrado.", 404);
+      await env.PENDENTES.delete(id);
+      return json({ ok: true });
     }
     if (acao === "rejeitar" && metodo === "POST") {
       const r = await env.BD.prepare("DELETE FROM materiais WHERE id = ? AND estado = 'pendente'").bind(id).run();
       if (!r.meta.changes) return erro("Envio não encontrado.", 404);
-      await env.FICHEIROS.delete(id);
+      await env.PENDENTES.delete(id);
       return json({ ok: true });
     }
   }
@@ -260,8 +288,7 @@ export default {
     if (pathname.startsWith("/api/painel/")) return painel(request, env, pathname.slice("/api/painel/".length));
 
     if (pathname.startsWith("/ficheiros/") && metodo === "GET") {
-      const f = await ficheiro(env, pathname.slice("/ficheiros/".length), "publicado");
-      return f ? respostaFicheiro(f.objeto, f.m, "public, max-age=86400") : new Response("Não encontrado", { status: 404 });
+      return ficheiroPublicado(env, pathname.slice("/ficheiros/".length));
     }
 
     if (pathname.startsWith("/api/")) return erro("Não encontrado.", 404);

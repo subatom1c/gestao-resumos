@@ -2,7 +2,7 @@
 
 Site estático com resumos e quizzes das disciplinas da licenciatura em Gestão, organizado por ano e semestre.
 
-O site corre no Cloudflare Pages: as páginas estão em `public/`, a API em `public/_worker.js`, os ficheiros no R2 e os registos no D1.
+O site corre no Cloudflare Pages: as páginas estão em `public/`, a API em `public/_worker.js`, os ficheiros publicados numa Release do GitHub (tag `notas`), os envios por aprovar no KV e os registos no D1.
 Para correr localmente: `npx wrangler d1 migrations apply gestao-resumos --local` e `npx wrangler pages dev`.
 
 ## Estrutura
