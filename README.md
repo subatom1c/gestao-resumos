@@ -39,4 +39,8 @@ Qualquer pessoa pode enviar material em `enviar.html`; fica escondido até ser a
 O painel usa início de sessão Google: `ADMIN_EMAIL` (segredo do projeto Pages, `npx wrangler pages secret put ADMIN_EMAIL`) aprova envios e gere os membros,
 e os membros de confiança publicam diretamente. Quando se rejeita um envio, o ficheiro é apagado.
 
+Cada nota tem "Propor alteração" para enviar uma versão corrigida; quando aprovada, substitui a anterior.
+Os resumos em texto editam-se em `editar.html` e o painel mostra as diferenças antes de aprovar.
+`scripts/converter_docx.py` gera esses resumos a partir dos `.docx`.
+
 A landing page antiga da Striped Milk está em `striped-milk/`.

@@ -24,6 +24,7 @@ function htmlPendente(m) {
     <li class="pendente" data-id="${esc(m.id)}">
       <p class="pendente__titulo">${esc(m.titulo)}</p>
       <p class="pendente__meta">${esc(meta)}</p>
+      ${m.substitui ? `<p class="pendente__meta">Substitui: <a href="ficheiros/${esc(m.substitui)}" target="_blank" rel="noopener">${esc(m.substitui_titulo || "nota já removida")}</a></p>` : ""}
       ${m.descricao ? `<p class="pendente__meta">${esc(m.descricao)}</p>` : ""}
       <div class="pendente__acoes">
         <button class="botao botao--leve" data-acao="ver" type="button">Ver ficheiro</button>
@@ -51,6 +52,66 @@ async function verFicheiro(id) {
   if (nome) a.download = decodeURIComponent(nome[1]);
   a.click();
   URL.revokeObjectURL(url);
+}
+
+/* ---------- alterações aos resumos em texto ---------- */
+
+// Compara linha a linha e devolve [tipo, linha], com tipo " ", "-" ou "+".
+function diferencas(antes, depois) {
+  const a = antes.split("\n"), b = depois.split("\n");
+  let inicio = 0;
+  while (inicio < a.length && inicio < b.length && a[inicio] === b[inicio]) inicio++;
+  let fimA = a.length, fimB = b.length;
+  while (fimA > inicio && fimB > inicio && a[fimA - 1] === b[fimB - 1]) { fimA--; fimB--; }
+
+  const n = fimA - inicio, m = fimB - inicio;
+  const tabela = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--)
+    for (let j = m - 1; j >= 0; j--)
+      tabela[i][j] = a[inicio + i] === b[inicio + j]
+        ? tabela[i + 1][j + 1] + 1
+        : Math.max(tabela[i + 1][j], tabela[i][j + 1]);
+
+  const saida = [];
+  let i = 0, j = 0;
+  while (i < n || j < m) {
+    if (i < n && j < m && a[inicio + i] === b[inicio + j]) { saida.push([" ", a[inicio + i]]); i++; j++; }
+    else if (j < m && (i === n || tabela[i][j + 1] >= tabela[i + 1][j])) saida.push(["+", b[inicio + j++]]);
+    else saida.push(["-", a[inicio + i++]]);
+  }
+  return saida;
+}
+
+function htmlDiferencas(p) {
+  const linhas = diferencas(p.conteudo_atual || "", p.conteudo);
+  return `<pre class="diff">${linhas.map(([t, l]) =>
+    `<span class="diff__${t === "+" ? "mais" : t === "-" ? "menos" : "igual"}">${t} ${esc(l)}</span>`).join("\n")}</pre>`;
+}
+
+function htmlProposta(p) {
+  const nova = !p.pagina_id;
+  const desatualizada = !nova && p.versao_atual !== p.versao_base;
+  const meta = [nomeDisciplina(p.disciplina), nova ? "Resumo novo" : "Alteração", p.autor && `por ${p.autor}`].filter(Boolean).join(" · ");
+  return `
+    <li class="pendente" data-proposta="${esc(p.id)}">
+      <p class="pendente__titulo">${esc(p.titulo)}</p>
+      <p class="pendente__meta">${esc(meta)}</p>
+      ${!nova && p.titulo !== p.titulo_atual ? `<p class="pendente__meta">Título anterior: ${esc(p.titulo_atual)}</p>` : ""}
+      ${p.nota ? `<p class="pendente__meta">${esc(p.nota)}</p>` : ""}
+      ${desatualizada ? `<p class="pendente__meta">O resumo mudou depois desta proposta, por isso já não pode ser aprovada.</p>` : ""}
+      ${htmlDiferencas(p)}
+      <div class="pendente__acoes">
+        <button class="botao" data-proposta-acao="aprovar" type="button">Aprovar</button>
+        <button class="botao botao--perigo" data-proposta-acao="rejeitar" type="button">Rejeitar</button>
+      </div>
+    </li>`;
+}
+
+async function carregarPropostas() {
+  const propostas = await api("propostas");
+  $("#propostas").innerHTML = propostas.length
+    ? propostas.map(htmlProposta).join("")
+    : `<li class="vazio-bloco">Não há alterações por aprovar.</li>`;
 }
 
 /* ---------- membros ---------- */
@@ -83,6 +144,16 @@ function iniciarAdmin() {
     } catch (err) { mostrarErro(err); }
   });
 
+  $("#propostas").addEventListener("click", async e => {
+    const acao = e.target.dataset.propostaAcao;
+    const id = e.target.closest(".pendente")?.dataset.proposta;
+    if (!acao || !id) return;
+    try {
+      await api(`propostas/${id}/${acao}`, { method: "POST" });
+      await carregarPropostas();
+    } catch (err) { mostrarErro(err); }
+  });
+
   $("#form-membro").addEventListener("submit", async e => {
     e.preventDefault();
     const input = e.target.elements.email;
@@ -106,7 +177,7 @@ function iniciarAdmin() {
     } catch (err) { mostrarErro(err); }
   });
 
-  return Promise.all([carregarPendentes(), carregarMembros()]);
+  return Promise.all([carregarPendentes(), carregarPropostas(), carregarMembros()]);
 }
 
 /* ---------- arranque ---------- */
@@ -114,8 +185,10 @@ function iniciarAdmin() {
 function htmlPainel() {
   return `
     <section class="secao" id="painel-admin" hidden>
-      <h2>Por aprovar</h2>
+      <h2>Ficheiros por aprovar</h2>
       <ul class="lista-simples" id="pendentes"></ul>
+      <h2>Alterações a resumos</h2>
+      <ul class="lista-simples" id="propostas"></ul>
       <h2>Membros de confiança</h2>
       <p>Quem está nesta lista entra com a conta Google desse email e publica sem aprovação.</p>
       <form class="formulario formulario--linha" id="form-membro">
