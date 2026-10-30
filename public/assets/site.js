@@ -263,7 +263,7 @@ function htmlFormEnvio(selecionada) {
       <label>Descrição (opcional) <textarea name="descricao" rows="3" maxlength="500"></textarea></label>
       <label>O teu nome (opcional; fica visível) <input name="autor" maxlength="80"></label>
       <label class="formulario__armadilha" aria-hidden="true">Site <input name="site" tabindex="-1" autocomplete="off"></label>
-      <label>Ficheiro (até 50 MB)
+      <label>Ficheiro (até 25 MB)
         <input name="ficheiro" type="file" required accept=".pdf,.doc,.docx,.pptx,.xlsx,.jpg,.jpeg,.png">
       </label>
       <button class="botao" type="submit">Enviar</button>

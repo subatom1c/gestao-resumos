@@ -3,7 +3,7 @@
 
 Gera em scripts/saida/:
   materiais.sql     linhas para a tabela materiais (id = md5 do ficheiro, por isso é repetível)
-  enviar.tsv        id, caminho e tipo MIME de cada ficheiro a enviar para o R2
+  enviar.tsv        id, caminho e tipo MIME de cada ficheiro a enviar para a Release
   excluidos.md      o que ficou de fora e porquê
 """
 import hashlib, os, re, unicodedata
