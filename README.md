@@ -2,8 +2,8 @@
 
 Site estático com resumos e quizzes das disciplinas da licenciatura em Gestão, organizado por ano e semestre.
 
-O site corre num Cloudflare Worker: as páginas estão em `public/`, os ficheiros no R2 e os registos no D1.
-Para correr localmente: `npx wrangler d1 migrations apply gestao-resumos --local` e `npx wrangler dev`.
+O site corre no Cloudflare Pages: as páginas estão em `public/`, a API em `public/_worker.js`, os ficheiros no R2 e os registos no D1.
+Para correr localmente: `npx wrangler d1 migrations apply gestao-resumos --local` e `npx wrangler pages dev`.
 
 ## Estrutura
 
@@ -14,7 +14,8 @@ Para correr localmente: `npx wrangler d1 migrations apply gestao-resumos --local
 - `public/disciplinas/<id>/`: ficheiros HTML dos resumos e quizzes de cada disciplina
 - `public/enviar.html`: formulário público; os envios ficam à espera de aprovação
 - `public/painel.html`: aprovar ou rejeitar envios e gerir membros de confiança
-- `worker/`: API e esquema da base de dados
+- `public/_worker.js`: API
+- `migracoes/`: esquema da base de dados
 - `scripts/importar.py`: prepara a importação de `sources/` (não publicado, fora do git)
 
 ## Acrescentar um quiz ou resumo
@@ -35,7 +36,7 @@ Para correr localmente: `npx wrangler d1 migrations apply gestao-resumos --local
 ## Envios e aprovação
 
 Qualquer pessoa pode enviar material em `enviar.html`; fica escondido até ser aprovado em `painel.html`.
-O painel usa início de sessão Google: `ADMIN_EMAIL` (segredo do Worker, `npx wrangler secret put ADMIN_EMAIL`) aprova envios e gere os membros,
+O painel usa início de sessão Google: `ADMIN_EMAIL` (segredo do projeto Pages, `npx wrangler pages secret put ADMIN_EMAIL`) aprova envios e gere os membros,
 e os membros de confiança publicam diretamente. Quando se rejeita um envio, o ficheiro é apagado.
 
 A landing page antiga da Striped Milk está em `striped-milk/`.
