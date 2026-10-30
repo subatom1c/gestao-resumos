@@ -1,10 +1,8 @@
 {
   "name": "gestao-resumos",
-  "main": "worker/index.js",
+  "pages_build_output_dir": "./public",
   "compatibility_date": "2026-10-01",
-  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/api/*", "/ficheiros/*"] },
-  "r2_buckets": [{ "binding": "FICHEIROS", "bucket_name": "gestao-resumos-ficheiros" }],
-  "d1_databases": [{ "binding": "BD", "database_name": "gestao-resumos", "database_id": "e8d1791f-a072-4573-b9da-57531130eb8d", "migrations_dir": "worker/migracoes" }],
+  "d1_databases": [{ "binding": "BD", "database_name": "gestao-resumos", "database_id": "e8d1791f-a072-4573-b9da-57531130eb8d", "migrations_dir": "migracoes" }],
   "vars": {
     "GOOGLE_CLIENT_ID": "",
     "GOOGLE_JWKS_URL": "https://www.googleapis.com/oauth2/v3/certs"
