@@ -143,6 +143,10 @@ function tamanhoLegivel(bytes) {
   return bytes < 1e6 ? `${Math.ceil(bytes / 1e3)} KB` : `${(bytes / 1e6).toFixed(1).replace(".", ",")} MB`;
 }
 
+function botaoAlterar(m) {
+  return `<a class="conteudo__alterar" href="enviar.html?substitui=${esc(m.id)}">Propor alteração</a>`;
+}
+
 function itemMaterial(m) {
   const meta = [m.ano_letivo, m.extensao.toUpperCase(), tamanhoLegivel(m.tamanho), m.autor && `por ${m.autor}`].filter(Boolean).join(" · ");
   return `
@@ -157,7 +161,31 @@ function itemMaterial(m) {
         </span>
         ${icone("seta", "conteudo__seta")}
       </a>
+      ${botaoAlterar(m)}
     </li>`;
+}
+
+function itemPagina(p) {
+  return `
+    <li>
+      <a class="conteudo" href="texto.html?id=${esc(p.id)}">
+        <span class="conteudo__icone tipo-resumo">${icone("resumo")}</span>
+        <span class="conteudo__texto">
+          <span class="conteudo__tipo">Resumo editável</span>
+          <span class="conteudo__titulo">${esc(p.titulo)}</span>
+        </span>
+        ${icone("seta", "conteudo__seta")}
+      </a>
+    </li>`;
+}
+
+function secaoPaginas(d, paginas) {
+  return `
+    <section class="secao">
+      <h2>Resumos editáveis <span class="contagem">${paginas.length}</span></h2>
+      ${paginas.length ? `<ul class="lista">${paginas.map(itemPagina).join("")}</ul>` : ""}
+      <p class="vazio-bloco"><a href="editar.html?d=${d.id}">Escrever um resumo novo</a></p>
+    </section>`;
 }
 
 function secaoMateriais(materiais, tipo, titulo) {
@@ -194,7 +222,10 @@ async function paginaDisciplina() {
 
   document.title = `${d.nome} · Resumos de Gestão`;
   const area = AREAS[d.area];
-  const materiais = await lerJson(`api/materiais?d=${encodeURIComponent(d.id)}`, []);
+  const [materiais, paginas] = await Promise.all([
+    lerJson(`api/materiais?d=${encodeURIComponent(d.id)}`, []),
+    lerJson(`api/paginas?d=${encodeURIComponent(d.id)}`, []),
+  ]);
   const irmas = TODAS.filter(t => t.ano === d.ano && t.semestre === d.semestre);
 
   main.innerHTML = `
@@ -228,6 +259,7 @@ async function paginaDisciplina() {
 
       ${secao(d, "resumo", "Resumos", "Ainda não há resumos para esta disciplina.")}
       ${secao(d, "quiz", "Quizzes", "Ainda não há quizzes para esta disciplina.")}
+      ${secaoPaginas(d, paginas)}
       ${secaoMateriais(materiais, "resumo", "Apontamentos")}
       ${secaoMateriais(materiais, "exercicios", "Exercícios")}
       ${secaoMateriais(materiais, "teste", "Testes e exames")}
@@ -245,9 +277,12 @@ function opcoesDisciplinas(selecionada) {
     </optgroup>`).join("");
 }
 
-function htmlFormEnvio(selecionada) {
+function htmlFormEnvio(selecionada, alvo) {
   return `
     <form class="formulario" id="form-envio">
+      ${alvo ? `<input type="hidden" name="substitui" value="${esc(alvo.id)}">
+        <input type="hidden" name="disciplina" value="${esc(alvo.disciplina)}">
+        <input type="hidden" name="tipo" value="${esc(alvo.tipo)}">` : `
       <label>Disciplina
         <select name="disciplina" required><option value="">Escolhe…</option>${opcoesDisciplinas(selecionada)}</select>
       </label>
@@ -257,8 +292,8 @@ function htmlFormEnvio(selecionada) {
           <option value="exercicios">Exercícios</option>
           <option value="teste">Teste ou exame</option>
         </select>
-      </label>
-      <label>Título <input name="titulo" required maxlength="150"></label>
+      </label>`}
+      <label>Título <input name="titulo" required maxlength="150" value="${alvo ? esc(alvo.titulo) : ""}"></label>
       <label>Ano letivo (opcional) <input name="ano_letivo" maxlength="20" placeholder="2025/26"></label>
       <label>Descrição (opcional) <textarea name="descricao" rows="3" maxlength="500"></textarea></label>
       <label>O teu nome (opcional; fica visível) <input name="autor" maxlength="80"></label>
@@ -292,10 +327,134 @@ function iniciarFormEnvio(url, cabecalhos, mensagemSucesso) {
   });
 }
 
-function paginaEnviar() {
-  const d = new URLSearchParams(location.search).get("d");
-  $("#formulario").innerHTML = htmlFormEnvio(d);
+async function paginaEnviar() {
+  const params = new URLSearchParams(location.search);
+  const substitui = params.get("substitui");
+  const alvo = substitui && await lerJson(`api/material?id=${encodeURIComponent(substitui)}`, null);
+  if (alvo) {
+    $("h1").textContent = "Propor alteração";
+    $("#intro").textContent = `Envia a versão corrigida de "${alvo.titulo}". Só substitui a atual depois de ser aprovada.`;
+  }
+  $("#formulario").innerHTML = htmlFormEnvio(params.get("d"), alvo);
   iniciarFormEnvio("api/envios", () => ({}), "Obrigado! O envio fica visível depois de ser aprovado.");
+}
+
+/* ---------- resumos em texto ---------- */
+
+// Markdown simples. Escapa tudo primeiro: o texto vem de quem edita.
+function mdLinha(t) {
+  return esc(t)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" rel="noopener nofollow">$1</a>');
+}
+
+function mdParaHtml(texto) {
+  const saida = [];
+  let lista = null, paragrafo = [];
+  const fecharParagrafo = () => {
+    if (paragrafo.length) saida.push(`<p>${paragrafo.map(mdLinha).join("<br>")}</p>`);
+    paragrafo = [];
+  };
+  const fecharLista = () => { if (lista) saida.push(`</${lista}>`); lista = null; };
+
+  for (const linha of texto.split("\n")) {
+    const titulo = /^(#{1,3})\s+(.+)$/.exec(linha);
+    const item = /^\s*(?:([-*])|\d+\.)\s+(.+)$/.exec(linha);
+    if (item) {
+      fecharParagrafo();
+      const tag = item[1] ? "ul" : "ol";
+      if (lista !== tag) { fecharLista(); saida.push(`<${tag}>`); lista = tag; }
+      saida.push(`<li>${mdLinha(item[2])}</li>`);
+      continue;
+    }
+    fecharLista();
+    if (titulo) {
+      fecharParagrafo();
+      const nivel = titulo[1].length + 1;
+      saida.push(`<h${nivel}>${mdLinha(titulo[2])}</h${nivel}>`);
+    } else if (!linha.trim()) {
+      fecharParagrafo();
+    } else {
+      paragrafo.push(linha);
+    }
+  }
+  fecharParagrafo();
+  fecharLista();
+  return saida.join("");
+}
+
+async function paginaTexto() {
+  const id = new URLSearchParams(location.search).get("id");
+  const p = await lerJson(`api/paginas/${encodeURIComponent(id)}`, null);
+  const main = $("#texto");
+  if (!p) {
+    main.innerHTML = `<div class="erro"><h1>Resumo não encontrado</h1><p><a href="index.html">Voltar às disciplinas</a></p></div>`;
+    return;
+  }
+  document.title = `${p.titulo} · Resumos de Gestão`;
+  const d = TODAS.find(t => t.id === p.disciplina);
+  main.innerHTML = `
+    <p><a href="disciplina.html?d=${esc(p.disciplina)}">← ${esc(d ? d.nome : p.disciplina)}</a></p>
+    <h1>${esc(p.titulo)}</h1>
+    <p><a class="botao botao--leve" href="editar.html?id=${esc(p.id)}">Editar este resumo</a></p>
+    <div class="texto-md">${mdParaHtml(p.conteudo)}</div>`;
+}
+
+async function paginaEditar() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id");
+  const p = id ? await lerJson(`api/paginas/${encodeURIComponent(id)}`, null) : null;
+  if (id && !p) { $("#editor").innerHTML = `<p>Resumo não encontrado.</p>`; return; }
+
+  $("h1").textContent = p ? "Editar resumo" : "Novo resumo";
+  $("#editor").innerHTML = `
+    <form class="formulario" id="form-editar">
+      ${p ? "" : `<label>Disciplina
+        <select name="disciplina" required><option value="">Escolhe…</option>${opcoesDisciplinas(params.get("d"))}</select>
+      </label>`}
+      <label>Título <input name="titulo" required maxlength="150" value="${p ? esc(p.titulo) : ""}"></label>
+      <label>Texto
+        <textarea name="conteudo" rows="20" required>${p ? esc(p.conteudo) : ""}</textarea>
+      </label>
+      <p class="formulario__ajuda"># Título · **negrito** · *itálico* · - lista</p>
+      <label>O que mudaste? (opcional) <input name="nota" maxlength="500"></label>
+      <label>O teu nome (opcional) <input name="autor" maxlength="80"></label>
+      <label class="formulario__armadilha" aria-hidden="true">Site <input name="site" tabindex="-1" autocomplete="off"></label>
+      <button class="botao" type="submit">Enviar para aprovação</button>
+      <p class="formulario__estado" id="editar-estado" role="status"></p>
+    </form>
+    <h2>Pré-visualização</h2>
+    <div class="texto-md" id="previsao"></div>`;
+
+  const form = $("#form-editar");
+  const previsao = $("#previsao");
+  const atualizar = () => { previsao.innerHTML = mdParaHtml(form.elements.conteudo.value); };
+  form.elements.conteudo.addEventListener("input", atualizar);
+  atualizar();
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const estado = $("#editar-estado");
+    const botao = form.querySelector("button");
+    botao.disabled = true;
+    estado.textContent = "A enviar…";
+    try {
+      const dados = Object.fromEntries(new FormData(form));
+      const r = await fetch("api/propostas", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...dados, pagina_id: p?.id || "" }),
+      });
+      const resposta = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(resposta.erro || "Não foi possível enviar.");
+      estado.textContent = "Obrigado! A alteração fica visível depois de ser aprovada.";
+    } catch (err) {
+      estado.textContent = err.message === "Failed to fetch" ? "Sem ligação ao servidor. Tenta outra vez." : err.message;
+    }
+    botao.disabled = false;
+  });
 }
 
 /* ---------- arranque ---------- */
@@ -304,3 +463,5 @@ iniciarTema();
 if (document.body.dataset.pagina === "inicio") paginaInicial();
 if (document.body.dataset.pagina === "disciplina") paginaDisciplina();
 if (document.body.dataset.pagina === "enviar") paginaEnviar();
+if (document.body.dataset.pagina === "texto") paginaTexto();
+if (document.body.dataset.pagina === "editar") paginaEditar();

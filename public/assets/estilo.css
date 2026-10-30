@@ -344,3 +344,14 @@ h1, h2, h3 { font-family: var(--fonte-titulo); line-height: 1.15; margin: 0; let
 .pendente__meta { font-size: .85rem; margin: 0 0 4px; }
 .pendente__acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .membro { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+/* ============ Resumos editáveis ============ */
+
+.conteudo__alterar { display: inline-block; font-size: .8rem; color: var(--suave); margin: 4px 0 0 16px; }
+.formulario__ajuda { font-size: .8rem; margin: 0; }
+.texto-md { line-height: 1.65; color: var(--texto); }
+.texto-md code { background: var(--superficie-2); border-radius: 4px; padding: 1px 4px; }
+.diff { background: var(--superficie-2); border-radius: 8px; padding: 10px; font-size: .8rem; overflow-x: auto; max-height: 360px; white-space: pre-wrap; }
+.diff__mais { color: var(--cont); }
+.diff__menos { color: var(--jur); text-decoration: line-through; }
+.diff__igual { color: var(--suave); }

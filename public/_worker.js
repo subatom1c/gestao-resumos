@@ -3,6 +3,8 @@
 const LIMITE_FICHEIRO = 25 * 1024 * 1024;
 const LIMITE_PENDENTES = 900 * 1024 * 1024;
 const LIMITE_ENVIOS_DIA = 10;
+const LIMITE_PROPOSTAS_DIA = 20;
+const LIMITE_CONTEUDO = 200 * 1024;
 
 const TIPOS = new Set(["resumo", "exercicios", "teste"]);
 
@@ -105,6 +107,7 @@ async function lerEnvio(request) {
     disciplina, tipo, titulo,
     descricao: texto("descricao", 500),
     ano_letivo: texto("ano_letivo", 20),
+    substitui: texto("substitui", 60),
     autor: texto("autor", 80),
     ficheiro_nome: ficheiro.name.slice(-150),
   };
@@ -132,9 +135,9 @@ async function guardarEnvio(env, e, { estado, ipHash = "", aprovadoPor = "" }) {
   if (estado === "pendente") await env.PENDENTES.put(id, e.bytes);
   else await publicarNoGithub(env, id, e.extensao, e.bytes);
   await env.BD.prepare(
-    `INSERT INTO materiais (id, disciplina, tipo, titulo, descricao, ano_letivo, autor, ficheiro_nome, extensao, tamanho, estado, ip_hash, aprovado_por)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).bind(id, e.disciplina, e.tipo, e.titulo, e.descricao, e.ano_letivo, e.autor, e.ficheiro_nome, e.extensao, e.bytes.byteLength, estado, ipHash, aprovadoPor).run();
+    `INSERT INTO materiais (id, disciplina, tipo, titulo, descricao, ano_letivo, autor, ficheiro_nome, extensao, tamanho, estado, ip_hash, aprovado_por, substitui)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(id, e.disciplina, e.tipo, e.titulo, e.descricao, e.ano_letivo, e.autor, e.ficheiro_nome, e.extensao, e.bytes.byteLength, estado, ipHash, aprovadoPor, e.substitui || "").run();
   return id;
 }
 
@@ -142,6 +145,12 @@ async function envioPublico(request, env) {
   const envio = await lerEnvio(request);
   if (envio.erro) return erro(envio.erro, envio.estado);
   if (envio.honeypot) return json({ ok: true }, 201);
+
+  if (envio.substitui) {
+    const alvo = await lerMaterial(env, envio.substitui, "publicado");
+    if (!alvo) return erro("A nota que querias alterar já não existe.", 404);
+    Object.assign(envio, { disciplina: alvo.disciplina, tipo: alvo.tipo });
+  }
 
   const ipHash = await hashIp(request);
   const { n } = await env.BD.prepare(
@@ -156,6 +165,64 @@ async function envioPublico(request, env) {
 
   await guardarEnvio(env, envio, { estado: "pendente", ipHash });
   return json({ ok: true }, 201);
+}
+
+/* ---------- resumos em texto ---------- */
+
+async function novaProposta(request, env) {
+  const d = await request.json().catch(() => null);
+  if (!d) return erro("Pedido inválido.");
+  if (d.site) return json({ ok: true }, 201);
+
+  const texto = (v, max) => String(v || "").trim().slice(0, max);
+  const paginaId = texto(d.pagina_id, 60);
+  const titulo = texto(d.titulo, 150);
+  const conteudo = String(d.conteudo || "").replace(/\r\n/g, "\n").trimEnd();
+  if (!titulo) return erro("Indica um título.");
+  if (!conteudo.trim()) return erro("Escreve o conteúdo do resumo.");
+  if (new TextEncoder().encode(conteudo).length > LIMITE_CONTEUDO) return erro("O resumo é demasiado longo (máximo 200 KB).", 413);
+
+  let disciplina = texto(d.disciplina, 60);
+  let versaoBase = 0;
+  if (paginaId) {
+    const pagina = await env.BD.prepare("SELECT * FROM paginas WHERE id = ?").bind(paginaId).first();
+    if (!pagina) return erro("Este resumo já não existe.", 404);
+    if (pagina.titulo === titulo && pagina.conteudo === conteudo) return erro("Não alteraste nada.");
+    disciplina = pagina.disciplina;
+    versaoBase = pagina.versao;
+  } else if (!/^[a-z0-9-]+$/.test(disciplina)) {
+    return erro("Escolhe uma disciplina.");
+  }
+
+  const ipHash = await hashIp(request);
+  const { n } = await env.BD.prepare(
+    "SELECT COUNT(*) AS n FROM propostas WHERE ip_hash = ? AND criado_em > datetime('now', '-1 day')"
+  ).bind(ipHash).first();
+  if (n >= LIMITE_PROPOSTAS_DIA) return erro("Atingiste o limite de alterações por hoje. Tenta amanhã.", 429);
+
+  await env.BD.prepare(
+    `INSERT INTO propostas (id, pagina_id, versao_base, disciplina, titulo, conteudo, autor, nota, ip_hash)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(crypto.randomUUID(), paginaId, versaoBase, disciplina, titulo, conteudo, texto(d.autor, 80), texto(d.nota, 500), ipHash).run();
+  return json({ ok: true }, 201);
+}
+
+async function aprovarProposta(env, id) {
+  const p = await env.BD.prepare("SELECT * FROM propostas WHERE id = ?").bind(id).first();
+  if (!p) return erro("Alteração não encontrada.", 404);
+
+  if (p.pagina_id) {
+    const r = await env.BD.prepare(
+      `UPDATE paginas SET titulo = ?, conteudo = ?, versao = versao + 1, atualizado_em = datetime('now')
+       WHERE id = ? AND versao = ?`
+    ).bind(p.titulo, p.conteudo, p.pagina_id, p.versao_base).run();
+    if (!r.meta.changes) return erro("O resumo mudou entretanto. Rejeita esta alteração e pede que seja refeita.", 409);
+  } else {
+    await env.BD.prepare("INSERT INTO paginas (id, disciplina, titulo, conteudo) VALUES (?, ?, ?, ?)")
+      .bind(p.id, p.disciplina, p.titulo, p.conteudo).run();
+  }
+  await env.BD.prepare("DELETE FROM propostas WHERE id = ?").bind(id).run();
+  return json({ ok: true });
 }
 
 /* ---------- ficheiros ---------- */
@@ -207,7 +274,9 @@ async function painel(request, env, caminho) {
 
   if (caminho === "pendentes" && metodo === "GET") {
     const { results } = await env.BD.prepare(
-      `SELECT ${CAMPOS_PUBLICOS}, ficheiro_nome FROM materiais WHERE estado = 'pendente' ORDER BY criado_em`
+      `SELECT ${CAMPOS_PUBLICOS.split(", ").map(c => `m.${c}`).join(", ")}, m.ficheiro_nome, m.substitui, a.titulo AS substitui_titulo
+       FROM materiais m LEFT JOIN materiais a ON a.id = m.substitui
+       WHERE m.estado = 'pendente' ORDER BY m.criado_em`
     ).all();
     return json(results);
   }
@@ -228,6 +297,7 @@ async function painel(request, env, caminho) {
       await env.BD.prepare(
         "UPDATE materiais SET estado = 'publicado', aprovado_por = ? WHERE id = ? AND estado = 'pendente'"
       ).bind(u.email, id).run();
+      if (m.substitui) await env.BD.prepare("DELETE FROM materiais WHERE id = ?").bind(m.substitui).run();
       await env.PENDENTES.delete(id);
       return json({ ok: true });
     }
@@ -237,6 +307,22 @@ async function painel(request, env, caminho) {
       await env.PENDENTES.delete(id);
       return json({ ok: true });
     }
+  }
+
+  if (caminho === "propostas" && metodo === "GET") {
+    const { results } = await env.BD.prepare(
+      `SELECT p.id, p.pagina_id, p.versao_base, p.disciplina, p.titulo, p.conteudo, p.autor, p.nota, p.criado_em,
+              g.titulo AS titulo_atual, g.conteudo AS conteudo_atual, g.versao AS versao_atual
+       FROM propostas p LEFT JOIN paginas g ON g.id = p.pagina_id ORDER BY p.criado_em`
+    ).all();
+    return json(results);
+  }
+  const proposta = /^propostas\/([\w-]+)\/(aprovar|rejeitar)$/.exec(caminho);
+  if (proposta && metodo === "POST") {
+    const [, id, acao] = proposta;
+    if (acao === "aprovar") return aprovarProposta(env, id);
+    await env.BD.prepare("DELETE FROM propostas WHERE id = ?").bind(id).run();
+    return json({ ok: true });
   }
 
   if (caminho === "membros" && metodo === "GET") {
@@ -270,7 +356,10 @@ export default {
 
     if (pathname === "/api/contagens" && metodo === "GET") {
       const { results } = await env.BD.prepare(
-        "SELECT disciplina, COUNT(*) AS n FROM materiais WHERE estado = 'publicado' GROUP BY disciplina"
+        `SELECT disciplina, COUNT(*) AS n FROM (
+           SELECT disciplina FROM materiais WHERE estado = 'publicado'
+           UNION ALL SELECT disciplina FROM paginas
+         ) GROUP BY disciplina`
       ).all();
       return json(Object.fromEntries(results.map(r => [r.disciplina, r.n])));
     }
@@ -282,6 +371,27 @@ export default {
       ).bind(searchParams.get("d") || "").all();
       return json(results);
     }
+
+    if (pathname === "/api/material" && metodo === "GET") {
+      const m = await env.BD.prepare(`SELECT ${CAMPOS_PUBLICOS} FROM materiais WHERE id = ? AND estado = 'publicado'`)
+        .bind(searchParams.get("id") || "").first();
+      return m ? json(m) : erro("Não encontrado.", 404);
+    }
+
+    if (pathname === "/api/paginas" && metodo === "GET") {
+      const { results } = await env.BD.prepare(
+        "SELECT id, titulo, atualizado_em FROM paginas WHERE disciplina = ? ORDER BY titulo"
+      ).bind(searchParams.get("d") || "").all();
+      return json(results);
+    }
+
+    const pagina = /^\/api\/paginas\/([\w-]+)$/.exec(pathname);
+    if (pagina && metodo === "GET") {
+      const p = await env.BD.prepare("SELECT * FROM paginas WHERE id = ?").bind(pagina[1]).first();
+      return p ? json(p) : erro("Não encontrado.", 404);
+    }
+
+    if (pathname === "/api/propostas" && metodo === "POST") return novaProposta(request, env);
 
     if (pathname === "/api/envios" && metodo === "POST") return envioPublico(request, env);
 
