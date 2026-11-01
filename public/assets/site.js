@@ -181,17 +181,14 @@ function itemPagina(p) {
     </li>`;
 }
 
-function secaoResumos(d, paginas, materiais) {
-  const ficheiros = materiais.filter(m => m.tipo === "resumo");
+function secaoResumos(d, paginas) {
   const html = d.conteudos.filter(c => c.tipo === "resumo");
-  const total = paginas.length + ficheiros.length + html.length;
   return `
     <section class="secao">
-      <h2>Resumos <span class="contagem">${total}</span></h2>
+      <h2>Resumos em página <span class="contagem">${paginas.length + html.length}</span></h2>
       <ul class="lista">
         ${paginas.map(itemPagina).join("")}
         ${html.map(c => itemConteudo(d, c)).join("")}
-        ${ficheiros.map(itemMaterial).join("")}
       </ul>
       <p class="vazio-bloco"><a href="editar.html?d=${d.id}">Escrever um resumo novo</a></p>
     </section>`;
@@ -266,7 +263,8 @@ async function paginaDisciplina() {
         </div>
       </header>
 
-      ${secaoResumos(d, paginas, materiais)}
+      ${secaoResumos(d, paginas)}
+      ${secaoMateriais(materiais, "resumo", "Resumos em PDF")}
       ${secao(d, "quiz", "Quizzes", "Ainda não há quizzes para esta disciplina.")}
       ${secaoMateriais(materiais, "exercicios", "Exercícios")}
       ${secaoMateriais(materiais, "teste", "Testes e exames")}
@@ -347,6 +345,48 @@ async function paginaEnviar() {
 }
 
 /* ---------- resumos em texto ---------- */
+
+// Compara linha a linha e devolve [tipo, linha], com tipo " ", "-" ou "+".
+function diferencas(antes, depois) {
+  const a = antes.split("\n"), b = depois.split("\n");
+  let inicio = 0;
+  while (inicio < a.length && inicio < b.length && a[inicio] === b[inicio]) inicio++;
+  let fimA = a.length, fimB = b.length;
+  while (fimA > inicio && fimB > inicio && a[fimA - 1] === b[fimB - 1]) { fimA--; fimB--; }
+
+  const n = fimA - inicio, m = fimB - inicio;
+  const tabela = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--)
+    for (let j = m - 1; j >= 0; j--)
+      tabela[i][j] = a[inicio + i] === b[inicio + j]
+        ? tabela[i + 1][j + 1] + 1
+        : Math.max(tabela[i + 1][j], tabela[i][j + 1]);
+
+  const saida = a.slice(0, inicio).map(l => [" ", l]);
+  let i = 0, j = 0;
+  while (i < n || j < m) {
+    if (i < n && j < m && a[inicio + i] === b[inicio + j]) { saida.push([" ", a[inicio + i]]); i++; j++; }
+    else if (j < m && (i === n || tabela[i][j + 1] >= tabela[i + 1][j])) saida.push(["+", b[inicio + j++]]);
+    else saida.push(["-", a[inicio + i++]]);
+  }
+  return saida.concat(a.slice(fimA).map(l => [" ", l]));
+}
+
+// Mostra o que mudou e duas linhas à volta; o resto do texto fica de fora.
+function htmlDiferencas(antes, depois) {
+  const linhas = diferencas(antes, depois);
+  const CONTEXTO = 2;
+  const mudou = linhas.map(([t]) => t !== " ");
+  const saida = [];
+  let saltou = false;
+  linhas.forEach(([t, l], i) => {
+    if (!mudou.slice(Math.max(0, i - CONTEXTO), i + CONTEXTO + 1).some(Boolean)) { saltou = true; return; }
+    if (saltou && saida.length) saida.push(`<span class="diff__igual">…</span>`);
+    saltou = false;
+    saida.push(`<span class="diff__${t === "+" ? "mais" : t === "-" ? "menos" : "igual"}">${t} ${esc(l)}</span>`);
+  });
+  return `<pre class="diff">${saida.join("\n")}</pre>`;
+}
 
 // Markdown simples. Escapa tudo primeiro: o texto vem de quem edita.
 function mdLinha(t) {
@@ -449,6 +489,7 @@ async function paginaTexto() {
         ${irmas.map(i => `<li><a href="texto.html?id=${esc(i.id)}" ${i.id === p.id ? 'aria-current="page"' : ""}><span>${esc(i.titulo)}</span></a></li>`).join("")}
       </ul>
       <a class="botao botao--leve leitura__editar" href="editar.html?id=${esc(p.id)}">Editar esta página</a>
+      <a class="botao botao--leve leitura__editar" href="historico.html?id=${esc(p.id)}">Ver alterações</a>
     </aside>
 
     <article class="leitura__texto">
@@ -494,18 +535,24 @@ async function paginaEditar() {
         <textarea name="conteudo" rows="20" required>${p ? esc(p.conteudo) : ""}</textarea>
       </label>
       <p class="formulario__ajuda"># Título · **negrito** · *itálico* · - lista</p>
-      <label>O que mudaste? (opcional) <input name="nota" maxlength="500"></label>
-      <label>O teu nome (opcional) <input name="autor" maxlength="80"></label>
+      <label>O que mudaste? (opcional; fica visível no histórico) <input name="nota" maxlength="500"></label>
+      <label>O teu nome (opcional; fica visível no histórico) <input name="autor" maxlength="80"></label>
       <label class="formulario__armadilha" aria-hidden="true">Site <input name="site" tabindex="-1" autocomplete="off"></label>
       <button class="botao" type="submit">Enviar para aprovação</button>
       <p class="formulario__estado" id="editar-estado" role="status"></p>
     </form>
+    ${p?.conteudo ? `<h2>O que estás a mudar</h2><div id="alteracoes"></div>` : ""}
     <h2>Pré-visualização</h2>
     <div class="texto-md" id="previsao"></div>`;
 
   const form = $("#form-editar");
   const previsao = $("#previsao");
-  const atualizar = () => { previsao.innerHTML = mdParaHtml(form.elements.conteudo.value); };
+  const alteracoes = $("#alteracoes");
+  const atualizar = () => {
+    const texto = form.elements.conteudo.value;
+    previsao.innerHTML = mdParaHtml(texto);
+    if (alteracoes) alteracoes.innerHTML = texto === p.conteudo ? `<p class="vazio-bloco">Ainda não mudaste nada.</p>` : htmlDiferencas(p.conteudo, texto);
+  };
   form.elements.conteudo.addEventListener("input", atualizar);
   atualizar();
 
@@ -532,6 +579,33 @@ async function paginaEditar() {
   });
 }
 
+function itemVersao(v, anterior) {
+  const meta = [v.criado_em.slice(0, 10), v.autor && `por ${v.autor}`].filter(Boolean).join(" · ");
+  return `
+    <li class="pendente">
+      <p class="pendente__titulo">${anterior ? `Versão ${v.versao}` : "Versão inicial"}</p>
+      <p class="pendente__meta">${esc(meta)}</p>
+      ${anterior && v.titulo !== anterior.titulo ? `<p class="pendente__meta">Título anterior: ${esc(anterior.titulo)}</p>` : ""}
+      ${v.nota ? `<p class="pendente__meta">${esc(v.nota)}</p>` : ""}
+      ${anterior ? htmlDiferencas(anterior.conteudo, v.conteudo) : ""}
+    </li>`;
+}
+
+async function paginaHistorico() {
+  const id = new URLSearchParams(location.search).get("id");
+  const [p, versoes] = await Promise.all([
+    lerJson(`api/paginas/${encodeURIComponent(id)}`, null),
+    lerJson(`api/paginas/${encodeURIComponent(id)}/versoes`, []),
+  ]);
+  if (!p) { $("#historico").innerHTML = `<p>Resumo não encontrado.</p>`; return; }
+
+  document.title = `Alterações a ${p.titulo} · Resumos de Gestão`;
+  $("#titulo-resumo").innerHTML = `<a href="texto.html?id=${esc(p.id)}">${esc(p.titulo)}</a>`;
+  $("#historico").innerHTML = versoes.length
+    ? `<ul class="lista-simples">${versoes.map((v, i) => itemVersao(v, versoes[i + 1])).join("")}</ul>`
+    : `<p class="vazio-bloco">Este resumo ainda não tem alterações aprovadas.</p>`;
+}
+
 /* ---------- arranque ---------- */
 
 iniciarTema();
@@ -540,3 +614,4 @@ if (document.body.dataset.pagina === "disciplina") paginaDisciplina();
 if (document.body.dataset.pagina === "enviar") paginaEnviar();
 if (document.body.dataset.pagina === "texto") paginaTexto();
 if (document.body.dataset.pagina === "editar") paginaEditar();
+if (document.body.dataset.pagina === "historico") paginaHistorico();

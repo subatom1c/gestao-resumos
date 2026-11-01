@@ -207,21 +207,36 @@ async function novaProposta(request, env) {
   return json({ ok: true }, 201);
 }
 
+// Sem data, a versão fica com a data de agora.
+const novaVersao = (env, paginaId, versao, titulo, conteudo, { autor = "", nota = "", data = null } = {}) =>
+  env.BD.prepare(
+    `INSERT OR IGNORE INTO versoes (pagina_id, versao, titulo, conteudo, autor, nota, criado_em)
+     VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now')))`
+  ).bind(paginaId, versao, titulo, conteudo, autor, nota, data);
+
 async function aprovarProposta(env, id) {
   const p = await env.BD.prepare("SELECT * FROM propostas WHERE id = ?").bind(id).first();
   if (!p) return erro("Alteração não encontrada.", 404);
 
+  const apagar = env.BD.prepare("DELETE FROM propostas WHERE id = ?").bind(id);
   if (p.pagina_id) {
+    const antes = await env.BD.prepare("SELECT * FROM paginas WHERE id = ?").bind(p.pagina_id).first();
     const r = await env.BD.prepare(
       `UPDATE paginas SET titulo = ?, conteudo = ?, versao = versao + 1, atualizado_em = datetime('now')
        WHERE id = ? AND versao = ?`
     ).bind(p.titulo, p.conteudo, p.pagina_id, p.versao_base).run();
     if (!r.meta.changes) return erro("O resumo mudou entretanto. Rejeita esta alteração e pede que seja refeita.", 409);
+    // As páginas anteriores ao histórico não têm a versão de partida guardada.
+    await env.BD.batch([
+      novaVersao(env, p.pagina_id, antes.versao, antes.titulo, antes.conteudo, { data: antes.atualizado_em }),
+      novaVersao(env, p.pagina_id, antes.versao + 1, p.titulo, p.conteudo, p),
+      apagar,
+    ]);
   } else {
     await env.BD.prepare("INSERT INTO paginas (id, disciplina, titulo, conteudo) VALUES (?, ?, ?, ?)")
       .bind(p.id, p.disciplina, p.titulo, p.conteudo).run();
+    await env.BD.batch([novaVersao(env, p.id, 1, p.titulo, p.conteudo, p), apagar]);
   }
-  await env.BD.prepare("DELETE FROM propostas WHERE id = ?").bind(id).run();
   return json({ ok: true });
 }
 
@@ -389,6 +404,14 @@ export default {
     if (pagina && metodo === "GET") {
       const p = await env.BD.prepare("SELECT * FROM paginas WHERE id = ?").bind(pagina[1]).first();
       return p ? json(p) : erro("Não encontrado.", 404);
+    }
+
+    const versoes = /^\/api\/paginas\/([\w-]+)\/versoes$/.exec(pathname);
+    if (versoes && metodo === "GET") {
+      const { results } = await env.BD.prepare(
+        "SELECT versao, titulo, conteudo, autor, nota, criado_em FROM versoes WHERE pagina_id = ? ORDER BY versao DESC LIMIT 50"
+      ).bind(versoes[1]).all();
+      return json(results);
     }
 
     if (pathname === "/api/propostas" && metodo === "POST") return novaProposta(request, env);
